@@ -1,6 +1,6 @@
-import { WebSocketServer } from 'ws';
+import { WebSocketServer, WebSocket as WSWebSocket } from 'ws';
 import { createServer } from 'https';
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { verify } from 'jsonwebtoken';
 import { config } from 'dotenv';
 
@@ -14,17 +14,25 @@ interface WebSocketMessage {
   content?: string;
 }
 
-interface SecureWebSocket extends WebSocket {
+interface SecureWebSocket extends WSWebSocket {
   userId?: string;
   userRole?: string;
   consultationId?: string;
 }
 
-// Configurações SSL
-const httpsServer = createServer({
-  cert: readFileSync(process.env.SSL_CERT_PATH || ''),
-  key: readFileSync(process.env.SSL_KEY_PATH || '')
-});
+// Only create HTTPS server if SSL certificates exist
+let httpsServer: any;
+if (process.env.SSL_CERT_PATH && process.env.SSL_KEY_PATH && 
+    existsSync(process.env.SSL_CERT_PATH) && existsSync(process.env.SSL_KEY_PATH)) {
+  httpsServer = createServer({
+    cert: readFileSync(process.env.SSL_CERT_PATH),
+    key: readFileSync(process.env.SSL_KEY_PATH)
+  });
+} else {
+  // For Render and other cloud platforms, use HTTP
+  const { createServer: createHTTPServer } = await import('http');
+  httpsServer = createHTTPServer();
+}
 
 // Inicializa WebSocket Server
 const wss = new WebSocketServer({ server: httpsServer });
@@ -40,109 +48,110 @@ const consultationRooms = new Map<string, {
 const PING_INTERVAL = 30000;
 const PING_TIMEOUT = 5000;
 
-wss.on('connection', (ws: SecureWebSocket) => {
+wss.on('connection', (ws: WSWebSocket) => {
+  const secureWs = ws as SecureWebSocket;
   console.log('🔌 Nova conexão WebSocket estabelecida');
   let pingTimeout: NodeJS.Timeout;
 
   const heartbeat = () => {
     clearTimeout(pingTimeout);
     pingTimeout = setTimeout(() => {
-      ws.terminate();
+      secureWs.terminate();
     }, PING_TIMEOUT);
   };
 
-  ws.on('message', async (data: string) => {
+  secureWs.on('message', async (data: Buffer) => {
     try {
-      const message: WebSocketMessage = JSON.parse(data);
+      const message: WebSocketMessage = JSON.parse(data.toString());
       
       switch (message.type) {
         case 'auth':
           if (!message.token) return;
           try {
             const decoded = verify(message.token, process.env.JWT_SECRET || '') as { userId: string; role: string };
-            ws.userId = decoded.userId;
-            ws.userRole = decoded.role;
-            activeConnections.set(decoded.userId, ws);
-            ws.send(JSON.stringify({ type: 'auth_success', userId: decoded.userId }));
+            secureWs.userId = decoded.userId;
+            secureWs.userRole = decoded.role;
+            activeConnections.set(decoded.userId, secureWs);
+            secureWs.send(JSON.stringify({ type: 'auth_success', userId: decoded.userId }));
             heartbeat();
           } catch (error) {
-            ws.send(JSON.stringify({ type: 'auth_error', message: 'Token inválido' }));
+            secureWs.send(JSON.stringify({ type: 'auth_error', message: 'Token inválido' }));
           }
           break;
 
         case 'join_consultation':
-          if (!ws.userId || !message.consultationId) return;
-          ws.consultationId = message.consultationId;
+          if (!secureWs.userId || !message.consultationId) return;
+          secureWs.consultationId = message.consultationId;
           
           if (!consultationRooms.has(message.consultationId)) {
             consultationRooms.set(message.consultationId, {});
           }
           
-          const room = consultationRooms.get(message.consultationId);
-          if (room) {
-            if (ws.userRole === 'cliente') {
-              room.userWs = ws;
-            } else if (ws.userRole === 'consultor') {
-              room.consultantWs = ws;
+          const consultRoom = consultationRooms.get(message.consultationId);
+          if (consultRoom) {
+            if (secureWs.userRole === 'cliente') {
+              consultRoom.userWs = secureWs;
+            } else if (secureWs.userRole === 'consultor') {
+              consultRoom.consultantWs = secureWs;
             }
           }
           
-          ws.send(JSON.stringify({ 
+          secureWs.send(JSON.stringify({ 
             type: 'joined_consultation', 
             consultationId: message.consultationId 
           }));
           break;
 
         case 'message':
-          if (!ws.consultationId || !message.content) return;
-          const room = consultationRooms.get(ws.consultationId);
-          if (room) {
+          if (!secureWs.consultationId || !message.content) return;
+          const messageRoom = consultationRooms.get(secureWs.consultationId);
+          if (messageRoom) {
             const broadcastMessage = {
               type: 'message',
-              consultationId: ws.consultationId,
-              senderType: ws.userRole === 'cliente' ? 'user' : 'consultant',
+              consultationId: secureWs.consultationId,
+              senderType: secureWs.userRole === 'cliente' ? 'user' : 'consultant',
               content: message.content,
               timestamp: new Date().toISOString()
             };
 
-            if (room.userWs?.readyState === 1) {
-              room.userWs.send(JSON.stringify(broadcastMessage));
+            if (messageRoom.userWs?.readyState === 1) {
+              messageRoom.userWs.send(JSON.stringify(broadcastMessage));
             }
-            if (room.consultantWs?.readyState === 1) {
-              room.consultantWs.send(JSON.stringify(broadcastMessage));
+            if (messageRoom.consultantWs?.readyState === 1) {
+              messageRoom.consultantWs.send(JSON.stringify(broadcastMessage));
             }
           }
           break;
       }
     } catch (error) {
       console.error('Erro no processamento da mensagem:', error);
-      ws.send(JSON.stringify({ 
+      secureWs.send(JSON.stringify({ 
         type: 'error', 
         message: 'Erro no processamento da mensagem' 
       }));
     }
   });
 
-  ws.on('close', () => {
+  secureWs.on('close', () => {
     clearTimeout(pingTimeout);
-    if (ws.userId) {
-      activeConnections.delete(ws.userId);
+    if (secureWs.userId) {
+      activeConnections.delete(secureWs.userId);
     }
-    if (ws.consultationId) {
-      const room = consultationRooms.get(ws.consultationId);
-      if (room) {
-        if (room.userWs === ws) room.userWs = undefined;
-        if (room.consultantWs === ws) room.consultantWs = undefined;
+    if (secureWs.consultationId) {
+      const closeRoom = consultationRooms.get(secureWs.consultationId);
+      if (closeRoom) {
+        if (closeRoom.userWs === secureWs) closeRoom.userWs = undefined;
+        if (closeRoom.consultantWs === secureWs) closeRoom.consultantWs = undefined;
       }
     }
   });
 
-  ws.on('pong', heartbeat);
+  secureWs.on('pong', heartbeat);
 });
 
 // Inicia ping em todas as conexões
 setInterval(() => {
-  wss.clients.forEach((ws: SecureWebSocket) => {
+  wss.clients.forEach((ws: WSWebSocket) => {
     if (ws.readyState === 1) {
       ws.ping();
     }
@@ -150,7 +159,7 @@ setInterval(() => {
 }, PING_INTERVAL);
 
 // Inicia servidor
-const PORT = process.env.WS_PORT || 5001;
+const PORT = parseInt(process.env.WS_PORT || '5001', 10);
 httpsServer.listen(PORT, () => {
   console.log(`🔒 Servidor WebSocket seguro rodando na porta ${PORT}`);
 });
