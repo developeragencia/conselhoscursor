@@ -1,19 +1,32 @@
+# Render Blueprint
+# https://render.com/docs/blueprint-spec
+
 services:
+  # Web Service
   - type: web
     name: conselhos-esotericos
     runtime: node
     plan: free
+    region: oregon
     buildCommand: npm install && npm run build
     startCommand: node dist/index.js
+    healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: PORT
-        value: 5000
-      - key: DATABASE_URL
-        sync: false
       - key: JWT_SECRET
         generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: conselhos-esotericos-db
+          property: connectionString
       - key: ALLOWED_ORIGINS
         sync: false
-    healthCheckPath: /api/health
+    autoDeploy: true
+
+databases:
+  - name: conselhos-esotericos-db
+    plan: free
+    region: oregon
+    databaseName: conselhos_db
+    user: conselhos_user

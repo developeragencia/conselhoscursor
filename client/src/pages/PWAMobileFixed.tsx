@@ -116,7 +116,7 @@ export default function PWAMobileFixed() {
                 </div>
               </div>
             </div>
-          ))}
+          )) : null}
         </div>
       </div>
 
@@ -143,7 +143,7 @@ export default function PWAMobileFixed() {
                 </div>
               </div>
             </div>
-          ))}
+          )) : null}
         </div>
       </div>
     </div>

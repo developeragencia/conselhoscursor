@@ -21,6 +21,8 @@ interface SecureWebSocket extends WSWebSocket {
 }
 
 // Only create HTTPS server if SSL certificates exist
+import { createServer as createHTTPServer } from 'http';
+
 let httpsServer: any;
 if (process.env.SSL_CERT_PATH && process.env.SSL_KEY_PATH && 
     existsSync(process.env.SSL_CERT_PATH) && existsSync(process.env.SSL_KEY_PATH)) {
@@ -30,7 +32,6 @@ if (process.env.SSL_CERT_PATH && process.env.SSL_KEY_PATH &&
   });
 } else {
   // For Render and other cloud platforms, use HTTP
-  const { createServer: createHTTPServer } = await import('http');
   httpsServer = createHTTPServer();
 }
 
