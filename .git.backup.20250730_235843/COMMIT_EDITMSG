@@ -1,0 +1,7 @@
+Improve user experience by ensuring content loads correctly on first visit
+
+Adds HydrationProvider to fix initial render issues and updates Next.js build configurations.
+
+Replit-Commit-Author: Agent
+Replit-Commit-Session-Id: 84e29342-0385-4872-8cc9-cc255f95330d
+Replit-Commit-Screenshot-Url: https://storage.googleapis.com/screenshot-production-us-central1/9dc07387-8c0c-487c-8aac-28642b565a24/773f3132-7fb9-498e-8c7e-94bb0c79fa99.jpg
