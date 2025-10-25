@@ -2,13 +2,17 @@ import express from 'express';
 import cors from 'cors';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { Pool } from '@neondatabase/serverless';
+import { Pool, neonConfig } from '@neondatabase/serverless';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import ws from 'ws';
+
+// Configure Neon to use ws for WebSocket
+neonConfig.webSocketConstructor = ws;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'conselhos_secret_2025';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
 
@@ -120,7 +124,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // CORS
 app.use(cors({
-  origin: (origin, callback) => {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
       return callback(null, true);
     }
@@ -176,7 +180,7 @@ app.post('/api/auth/register', async (req, res) => {
           INSERT INTO users VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
         `, [user.id, user.email, user.first_name, user.last_name, user.password_hash, 
             user.role, user.phone, user.cpf, user.credits, user.is_active, user.created_at]);
-      } catch (e) {
+      } catch (e: any) {
         if (e.code === '23505') { // Unique constraint violation
           return res.status(400).json({ error: 'Email já cadastrado' });
         }
@@ -485,9 +489,9 @@ const startServer = async () => {
     // For Vercel, we don't start the server here
     console.log('🚀 Server ready for Vercel deployment');
   } else {
-    // For local development
-    app.listen(PORT, () => {
-      console.log(`🌙 Conselhos Esotéricos running on http://localhost:${PORT}`);
+    // For local development and Replit
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log(`🌙 Conselhos Esotéricos running on http://0.0.0.0:${PORT}`);
     });
   }
 };
