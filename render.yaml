@@ -9,7 +9,7 @@ services:
     plan: free
     region: oregon
     buildCommand: npm ci && npm run build
-    startCommand: node server/index.js
+    startCommand: tsx server/index.ts
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV

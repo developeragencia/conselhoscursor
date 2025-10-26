@@ -160,6 +160,7 @@ app.use((req, res, next) => {
 });
 
 // Serve static files
+// Com tsx, __dirname será server/, então ../dist/public é correto
 app.use(express.static(path.join(__dirname, '../dist/public')));
 
 // === AUTH ENDPOINTS ===
