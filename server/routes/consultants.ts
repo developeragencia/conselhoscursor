@@ -66,9 +66,7 @@ export const createConsultantsRouter = (db: Pool | null) => {
           rating,
           review_count as "reviewCount",
           image_url as "imageUrl",
-          whatsapp,
           status,
-          is_active as "isActive",
           created_at as "createdAt"
         FROM consultants 
         WHERE status = 'online'
@@ -76,7 +74,7 @@ export const createConsultantsRouter = (db: Pool | null) => {
         LIMIT 6
       `);
 
-      // Se não houver consultores online, busca todos os ativos
+      // Se não houver consultores online, busca todos
       if (result.rows.length === 0) {
         result = await db.query(`
           SELECT 
@@ -90,34 +88,7 @@ export const createConsultantsRouter = (db: Pool | null) => {
             rating,
             review_count as "reviewCount",
             image_url as "imageUrl",
-            whatsapp,
             status,
-            is_active as "isActive",
-            created_at as "createdAt"
-          FROM consultants 
-          WHERE is_active = true
-          ORDER BY rating DESC, review_count DESC 
-          LIMIT 6
-        `);
-      }
-
-      // Se ainda não houver, busca todos
-      if (result.rows.length === 0) {
-        result = await db.query(`
-          SELECT 
-            id,
-            name,
-            slug,
-            title,
-            specialty,
-            description,
-            price_per_minute as "pricePerMinute",
-            rating,
-            review_count as "reviewCount",
-            image_url as "imageUrl",
-            whatsapp,
-            status,
-            is_active as "isActive",
             created_at as "createdAt"
           FROM consultants 
           ORDER BY rating DESC, review_count DESC 
