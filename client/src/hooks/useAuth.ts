@@ -5,8 +5,13 @@ interface User {
   email: string;
   first_name: string;
   last_name: string;
-  role: 'user' | 'consultor' | 'admin';
+  firstName: string; // Compatibilidade
+  lastName: string;  // Compatibilidade
+  role: 'user' | 'consultor' | 'consultant' | 'admin';
   credits: number;
+  profileImageUrl?: string;
+  phone?: string;
+  cpf?: string;
 }
 
 interface AuthState {
@@ -27,7 +32,7 @@ export const useAuth = () => {
   // Carregar dados do usuário ao iniciar
   useEffect(() => {
     const loadUser = async () => {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem('token') || localStorage.getItem('authToken');
       
       if (!token) {
         setAuthState({
@@ -40,16 +45,27 @@ export const useAuth = () => {
       }
 
       try {
-        const response = await fetch('/api/auth/me', {
+        const response = await fetch('/api/auth/user', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
         });
 
         if (response.ok) {
-          const user = await response.json();
+          const data = await response.json();
+          const user = data.user || data;
+          
+          // Normalizar campos para compatibilidade
+          const normalizedUser = {
+            ...user,
+            firstName: user.firstName || user.first_name,
+            lastName: user.lastName || user.last_name,
+            first_name: user.first_name || user.firstName,
+            last_name: user.last_name || user.lastName
+          };
+          
           setAuthState({
-            user,
+            user: normalizedUser,
             token,
             isLoading: false,
             isAuthenticated: true
@@ -57,6 +73,7 @@ export const useAuth = () => {
         } else {
           // Token inválido
           localStorage.removeItem('token');
+          localStorage.removeItem('authToken');
           setAuthState({
             user: null,
             token: null,
@@ -66,6 +83,8 @@ export const useAuth = () => {
         }
       } catch (error) {
         console.error('Error loading user:', error);
+        localStorage.removeItem('token');
+        localStorage.removeItem('authToken');
         setAuthState({
           user: null,
           token: null,

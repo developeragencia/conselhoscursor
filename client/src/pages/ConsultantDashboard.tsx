@@ -35,13 +35,31 @@ import {
 } from "lucide-react";
 
 export default function ConsultantDashboard() {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading } = useAuth();
   const [editMode, setEditMode] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
 
-  if (!user) return null;
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-purple-600 font-medium">Carregando seu painel...</p>
+        </div>
+      </div>
+    );
+  }
 
-  const initials = `${user.firstName[0]}${user.lastName[0]}`;
+  // Redirect to login if no user
+  if (!user) {
+    window.location.href = '/login';
+    return null;
+  }
+
+  const firstName = user.firstName || user.first_name || '';
+  const lastName = user.lastName || user.last_name || '';
+  const initials = `${firstName[0] || 'C'}${lastName[0] || 'D'}`;
   const monthlyEarnings = 2850.00;
   const totalConsultations = 145;
   const rating = 4.9;
@@ -60,7 +78,7 @@ export default function ConsultantDashboard() {
               </Avatar>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">
-                  {user.firstName} {user.lastName}
+                  {firstName} {lastName}
                 </h1>
                 <p className="text-sm text-gray-500">Consultor Esotérico</p>
               </div>
