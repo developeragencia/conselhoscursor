@@ -57,47 +57,47 @@ const ServicoCard = ({ servico, index }: { servico: any, index: number }) => {
 
 // Componente principal da seção de serviços
 const NovosServicos = () => {
-  // Lista de serviços com dados completos usando as imagens originais
+  // Lista de serviços com imagens do Unsplash
   const servicos = [
     {
       titulo: "Tarot",
       descricao: "Consultas detalhadas de Tarot para orientação em decisões, previsões futuras e autoconhecimento profundo.",
-      imagem: "/images/services/tarot.svg",
+      imagem: "https://images.unsplash.com/photo-1531747118685-ca8fa6e08806?w=800&h=600&fit=crop",
       icone: "🔮",
       link: "/servicos/tarot"
     },
     {
       titulo: "Astrologia",
       descricao: "Mapas astrais detalhados para entender influências planetárias, compatibilidade e momentos decisivos em sua vida.",
-      imagem: "/images/services/astrologia.svg",
+      imagem: "https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&h=600&fit=crop",
       icone: "✨",
       link: "/servicos/astrologia"
     },
     {
       titulo: "Numerologia",
       descricao: "Análise detalhada de números significativos para revelar padrões, desafios e propósitos de vida.",
-      imagem: "/images/services/numerologia.svg",
+      imagem: "https://images.unsplash.com/photo-1635070041078-e363dbe005cb?w=800&h=600&fit=crop",
       icone: "🔢",
       link: "/servicos/numerologia"
     },
     {
       titulo: "Runas",
       descricao: "Interpretação dos símbolos rúnicos ancestrais para orientação espiritual, proteção e compreensão do destino.",
-      imagem: "/images/services/runas.svg",
+      imagem: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?w=800&h=600&fit=crop",
       icone: "⚡",
       link: "/servicos/runas"
     },
     {
       titulo: "Mediunidade",
       descricao: "Comunicação com o plano espiritual para orientações, curas energéticas e mensagens de entes queridos.",
-      imagem: "/images/services/mediunidade.svg",
+      imagem: "https://images.unsplash.com/photo-1506318137071-a8e063b4bec0?w=800&h=600&fit=crop",
       icone: "👁️",
       link: "/servicos/mediunidade"
     },
     {
       titulo: "Oráculos",
       descricao: "Leituras de diferentes oráculos para orientação espiritual e clareza em situações específicas da sua vida.",
-      imagem: "/images/services/oraculos.svg",
+      imagem: "https://images.unsplash.com/photo-1551269901-5c5e14c25df7?w=800&h=600&fit=crop",
       icone: "🔍",
       link: "/servicos/oraculos"
     }
