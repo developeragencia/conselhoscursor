@@ -22,8 +22,6 @@ const Blog = lazy(() => import("@/pages/Blog"));
 const Contact = lazy(() => import("@/pages/Contact"));
 const Testimonials = lazy(() => import("@/pages/Testimonials"));
 const Shop = lazy(() => import("@/pages/Shop"));
-const ConsultoresFixed = lazy(() => import("@/pages/ConsultoresFixed"));
-const ConsultoresEnhanced = lazy(() => import("@/pages/ConsultoresEnhanced"));
 const Checkout = lazy(() => import("@/pages/Checkout"));
 const Promotions = lazy(() => import("@/pages/Promotions"));
 const BlogPost = lazy(() => import("@/pages/BlogPost"));
