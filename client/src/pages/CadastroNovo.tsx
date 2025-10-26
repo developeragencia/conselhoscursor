@@ -127,8 +127,30 @@ export default function CadastroNovo() {
     }
 
     if (accountType === 'consultor') {
-      if (!formData.description.trim()) {
-        newErrors.description = 'Descrição é obrigatória para consultores';
+      if (!formData.bio.trim()) {
+        newErrors.description = 'Bio profissional é obrigatória para consultores';
+      } else if (formData.bio.trim().length < 30) {
+        newErrors.description = 'Bio deve ter no mínimo 30 caracteres';
+      }
+      
+      if (!formData.experience) {
+        newErrors.description = (newErrors.description || '') + ' Experiência é obrigatória.';
+      }
+      
+      if (formData.consultationTypes.length === 0) {
+        newErrors.description = (newErrors.description || '') + ' Selecione pelo menos 1 tipo de consulta.';
+      }
+      
+      if (formData.languages.length === 0) {
+        newErrors.description = (newErrors.description || '') + ' Selecione pelo menos 1 idioma.';
+      }
+      
+      if (!formData.profileImage || !formData.profileImage.startsWith('http')) {
+        newErrors.description = (newErrors.description || '') + ' Foto de perfil é obrigatória (URL válida).';
+      }
+      
+      if (!formData.availability) {
+        newErrors.description = (newErrors.description || '') + ' Disponibilidade é obrigatória.';
       }
       
       const rate = parseFloat(formData.hourlyRate);
@@ -180,10 +202,15 @@ export default function CadastroNovo() {
 
   // Submit final
   const handleSubmit = async () => {
+    console.log('🔍 Validando step 3...');
+    
     if (!validateStep3()) {
+      console.error('❌ Validação falhou');
+      setError('Por favor, preencha todos os campos obrigatórios corretamente');
       return;
     }
 
+    console.log('✅ Validação OK, enviando cadastro...');
     setLoading(true);
     setError('');
 
@@ -197,7 +224,15 @@ export default function CadastroNovo() {
         phone: formData.phone.replace(/\D/g, ''),
         ...(accountType === 'consultor' && {
           specialty: formData.specialty,
-          description: formData.description,
+          bio: formData.bio,
+          experience: formData.experience,
+          certifications: formData.certifications,
+          specialties: formData.specialties,
+          languages: formData.languages,
+          consultationTypes: formData.consultationTypes,
+          availability: formData.availability,
+          profileImage: formData.profileImage,
+          hourlyRate: parseFloat(formData.hourlyRate),
           pricePerMinute: Math.round(parseFloat(formData.hourlyRate) / 60 * 100) / 100
         })
       };
@@ -211,14 +246,18 @@ export default function CadastroNovo() {
       });
 
       const result = await response.json();
+      console.log('📥 Resposta do servidor:', result);
 
-      if (response.ok && result.token) {
+      if (response.ok && (result.token || result.success)) {
+        console.log('✅ Cadastro realizado com sucesso!');
         setSuccess(true);
         setStep(4);
         
         // Redirecionar após 2 segundos
         setTimeout(() => {
-          localStorage.setItem('authToken', result.token);
+          if (result.token) {
+            localStorage.setItem('authToken', result.token);
+          }
           if (accountType === 'cliente') {
             setLocation('/client-dashboard');
           } else {
@@ -226,10 +265,10 @@ export default function CadastroNovo() {
           }
         }, 2000);
       } else {
-        throw new Error(result.error || 'Erro no cadastro');
+        throw new Error(result.error || result.message || 'Erro no cadastro');
       }
     } catch (err: any) {
-      console.error('Erro no cadastro:', err);
+      console.error('❌ Erro no cadastro:', err);
       setError(err.message || 'Erro ao finalizar cadastro. Tente novamente.');
     } finally {
       setLoading(false);
@@ -561,11 +600,19 @@ export default function CadastroNovo() {
                     placeholder="Ex: Tarólogo há 10 anos, especializado em amor e carreira..."
                     value={formData.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
+                    minLength={30}
                     className={`w-full p-3 rounded-md border bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
                       errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                   />
-                  <p className="text-xs text-gray-500">Esta descrição aparecerá no seu perfil público</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-xs text-gray-500">
+                      Esta descrição aparecerá no seu perfil público (mínimo 30 caracteres)
+                    </p>
+                    <p className={`text-xs ${formData.bio.length < 30 ? 'text-red-500' : 'text-green-500'}`}>
+                      {formData.bio.length}/30
+                    </p>
+                  </div>
                 </div>
 
                 {/* Anos de Experiência */}
@@ -772,7 +819,11 @@ export default function CadastroNovo() {
         </Button>
         <Button
           type="button"
-          onClick={nextStep}
+          onClick={(e) => {
+            e.preventDefault();
+            console.log('🔘 Botão Finalizar clicado');
+            handleSubmit();
+          }}
           disabled={loading}
           className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600"
         >
