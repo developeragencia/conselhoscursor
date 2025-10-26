@@ -37,9 +37,19 @@ export default function CadastroNovo() {
     password: '',
     confirmPassword: '',
     phone: '',
+    // Dados do Consultor
     description: '',
     hourlyRate: '',
-    specialty: 'tarot'
+    specialty: 'tarot',
+    experience: '',
+    certifications: '',
+    specialties: [] as string[],
+    languages: [] as string[],
+    availability: '',
+    profileImage: '',
+    bio: '',
+    achievements: '',
+    consultationTypes: [] as string[]
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
@@ -518,50 +528,220 @@ export default function CadastroNovo() {
               </h3>
               
               <div className="space-y-4">
+                {/* Especialidade Principal */}
                 <div className="space-y-2">
-                  <Label htmlFor="description" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                  <Label htmlFor="specialty" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Especialidade Principal *
+                  </Label>
+                  <select
+                    id="specialty"
+                    value={formData.specialty}
+                    onChange={(e) => handleInputChange('specialty', e.target.value)}
+                    className="w-full h-12 p-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="tarot">Tarot</option>
+                    <option value="astrologia">Astrologia</option>
+                    <option value="numerologia">Numerologia</option>
+                    <option value="runas">Runas</option>
+                    <option value="mediunidade">Mediunidade</option>
+                    <option value="reiki">Reiki</option>
+                    <option value="cristaloterapia">Cristaloterapia</option>
+                    <option value="oraculos">Oráculos</option>
+                  </select>
+                </div>
+
+                {/* Bio Profissional */}
+                <div className="space-y-2">
+                  <Label htmlFor="bio" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                     <FileText className="w-4 h-4" />
-                    Descrição Profissional *
+                    Bio Profissional (Para o perfil público) *
                   </Label>
                   <textarea
-                    id="description"
+                    id="bio"
                     rows={3}
-                    placeholder="Descreva sua experiência e especialidades..."
-                    value={formData.description}
-                    onChange={(e) => handleInputChange('description', e.target.value)}
+                    placeholder="Ex: Tarólogo há 10 anos, especializado em amor e carreira..."
+                    value={formData.bio}
+                    onChange={(e) => handleInputChange('bio', e.target.value)}
                     className={`w-full p-3 rounded-md border bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${
                       errors.description ? 'border-red-500' : 'border-gray-300 dark:border-gray-600'
                     }`}
                   />
-                  {errors.description && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4" />
-                      {errors.description}
-                    </p>
-                  )}
+                  <p className="text-xs text-gray-500">Esta descrição aparecerá no seu perfil público</p>
                 </div>
 
+                {/* Anos de Experiência */}
                 <div className="space-y-2">
-                  <Label htmlFor="hourlyRate" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
-                    <DollarSign className="w-4 h-4" />
-                    Valor por Hora (R$) *
+                  <Label htmlFor="experience" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Anos de Experiência *
                   </Label>
-                  <Input
-                    id="hourlyRate"
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    placeholder="50.00"
-                    value={formData.hourlyRate}
-                    onChange={(e) => handleInputChange('hourlyRate', e.target.value)}
-                    className={`h-12 ${errors.hourlyRate ? 'border-red-500' : ''}`}
+                  <select
+                    id="experience"
+                    value={formData.experience}
+                    onChange={(e) => handleInputChange('experience', e.target.value)}
+                    className="w-full h-12 p-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  >
+                    <option value="">Selecione...</option>
+                    <option value="1-2">1-2 anos</option>
+                    <option value="3-5">3-5 anos</option>
+                    <option value="6-10">6-10 anos</option>
+                    <option value="10+">Mais de 10 anos</option>
+                  </select>
+                </div>
+
+                {/* Especialidades Adicionais */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Especialidades Adicionais (Selecione até 3)
+                  </Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Tarot', 'Astrologia', 'Numerologia', 'Runas', 'Mediunidade', 'Reiki'].map((spec) => (
+                      <label key={spec} className="flex items-center space-x-2 p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.specialties.includes(spec)}
+                          onChange={(e) => {
+                            const current = formData.specialties;
+                            if (e.target.checked && current.length < 3) {
+                              handleInputChange('specialties', [...current, spec] as any);
+                            } else if (!e.target.checked) {
+                              handleInputChange('specialties', current.filter(s => s !== spec) as any);
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{spec}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tipos de Consulta */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Tipos de Consulta Oferecidos *
+                  </Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {['Chat', 'Vídeo', 'Áudio', 'Email'].map((type) => (
+                      <label key={type} className="flex items-center space-x-2 p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.consultationTypes.includes(type)}
+                          onChange={(e) => {
+                            const current = formData.consultationTypes;
+                            if (e.target.checked) {
+                              handleInputChange('consultationTypes', [...current, type] as any);
+                            } else {
+                              handleInputChange('consultationTypes', current.filter(t => t !== type) as any);
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{type}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Idiomas */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Idiomas que Atende *
+                  </Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {['Português', 'Inglês', 'Espanhol'].map((lang) => (
+                      <label key={lang} className="flex items-center space-x-2 p-2 border rounded hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={formData.languages.includes(lang)}
+                          onChange={(e) => {
+                            const current = formData.languages;
+                            if (e.target.checked) {
+                              handleInputChange('languages', [...current, lang] as any);
+                            } else {
+                              handleInputChange('languages', current.filter(l => l !== lang) as any);
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        <span className="text-sm text-gray-700 dark:text-gray-300">{lang}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Certificações */}
+                <div className="space-y-2">
+                  <Label htmlFor="certifications" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Certificações e Cursos (Opcional)
+                  </Label>
+                  <textarea
+                    id="certifications"
+                    rows={2}
+                    placeholder="Ex: Certificado em Tarot pela Escola X, Curso de Astrologia Vedica..."
+                    value={formData.certifications}
+                    onChange={(e) => handleInputChange('certifications', e.target.value)}
+                    className="w-full p-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
                   />
-                  {errors.hourlyRate && (
-                    <p className="text-sm text-red-500 flex items-center gap-1">
-                      <AlertCircle className="w-4 h-4" />
-                      {errors.hourlyRate}
-                    </p>
-                  )}
+                </div>
+
+                {/* Conquistas */}
+                <div className="space-y-2">
+                  <Label htmlFor="achievements" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    Conquistas e Destaques (Opcional)
+                  </Label>
+                  <textarea
+                    id="achievements"
+                    rows={2}
+                    placeholder="Ex: Mais de 1000 consultas realizadas, Avaliação 5 estrelas..."
+                    value={formData.achievements}
+                    onChange={(e) => handleInputChange('achievements', e.target.value)}
+                    className="w-full p-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  />
+                </div>
+
+                {/* Valor por Hora */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="hourlyRate" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                      <DollarSign className="w-4 h-4" />
+                      Valor por Hora (R$) *
+                    </Label>
+                    <Input
+                      id="hourlyRate"
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      placeholder="50.00"
+                      value={formData.hourlyRate}
+                      onChange={(e) => handleInputChange('hourlyRate', e.target.value)}
+                      className={`h-12 ${errors.hourlyRate ? 'border-red-500' : ''}`}
+                    />
+                    {errors.hourlyRate && (
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <AlertCircle className="w-4 h-4" />
+                        {errors.hourlyRate}
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Disponibilidade */}
+                  <div className="space-y-2">
+                    <Label htmlFor="availability" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      Disponibilidade *
+                    </Label>
+                    <select
+                      id="availability"
+                      value={formData.availability}
+                      onChange={(e) => handleInputChange('availability', e.target.value)}
+                      className="w-full h-12 p-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    >
+                      <option value="">Selecione...</option>
+                      <option value="full-time">Tempo Integral</option>
+                      <option value="part-time">Meio Período</option>
+                      <option value="weekends">Finais de Semana</option>
+                      <option value="evenings">Noites</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             </div>

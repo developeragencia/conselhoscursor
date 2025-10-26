@@ -40,10 +40,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
   return (
     <div className="min-h-screen grid lg:grid-cols-2 overflow-hidden">
       {/* Coluna Esquerda - Branding */}
-      <div className="hidden lg:flex flex-col justify-between p-12 bg-gradient-to-br from-purple-600 via-purple-700 to-indigo-800 text-white relative overflow-hidden">
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute top-20 left-20 w-72 h-72 bg-white rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-300 rounded-full blur-3xl animate-pulse"></div>
+      <div className="hidden lg:flex flex-col justify-between p-12 bg-white dark:bg-gray-900 relative overflow-hidden border-r border-gray-200 dark:border-gray-800">
+        <div className="absolute inset-0 opacity-5">
+          <div className="absolute top-20 left-20 w-72 h-72 bg-purple-500 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-20 w-96 h-96 bg-orange-400 rounded-full blur-3xl animate-pulse"></div>
         </div>
 
         <div className="relative z-10">
@@ -53,33 +53,33 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
                 <img src={logoImage} alt="Conselhos Esotéricos" className="h-16 w-auto" />
               )}
               <div>
-                <h1 className="text-3xl font-bold flex items-center gap-2">
+                <h1 className="text-3xl font-bold flex items-center gap-2 text-gray-900 dark:text-white">
                   Conselhos Esotéricos
-                  <Sparkles className="w-6 h-6 text-yellow-300" />
+                  <Sparkles className="w-6 h-6 text-purple-600" />
                 </h1>
-                <p className="text-purple-200 text-sm">Conectando energias e destinos</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm">Conectando energias e destinos</p>
               </div>
             </div>
           </Link>
 
           <div className="space-y-8">
             <div className="space-y-4">
-              <h2 className="text-4xl font-bold leading-tight">
-                Transforme sua vida com <br /><span className="text-yellow-300">orientação espiritual</span>
+              <h2 className="text-4xl font-bold leading-tight text-gray-900 dark:text-white">
+                Transforme sua vida com <br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-orange-500">orientação espiritual</span>
               </h2>
-              <p className="text-lg text-purple-100">
+              <p className="text-lg text-gray-600 dark:text-gray-300">
                 Conecte-se com consultores especializados em tarot, astrologia, numerologia e muito mais.
               </p>
             </div>
 
             <div className="space-y-4">
               {[
-                { icon: '', text: 'Consultas online seguras e privadas' },
-                { icon: '', text: 'Mais de 1000 consultas realizadas' },
-                { icon: '', text: 'Consultores verificados e experientes' },
-                { icon: '', text: 'Pagamento seguro e transparente' },
+                { icon: '🔮', text: 'Consultas online seguras e privadas' },
+                { icon: '⭐', text: 'Mais de 1000 consultas realizadas' },
+                { icon: '💜', text: 'Consultores verificados e experientes' },
+                { icon: '🎯', text: 'Pagamento seguro e transparente' },
               ].map((item, index) => (
-                <div key={index} className="flex items-center space-x-3 text-purple-50">
+                <div key={index} className="flex items-center space-x-3 text-gray-700 dark:text-gray-300">
                   <span className="text-2xl">{item.icon}</span>
                   <span>{item.text}</span>
                 </div>
@@ -88,8 +88,8 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({
           </div>
         </div>
 
-        <div className="relative z-10 text-sm text-purple-200">
-          <p> 2025 Conselhos Esotéricos. Todos os direitos reservados.</p>
+        <div className="relative z-10 text-sm text-gray-500 dark:text-gray-400">
+          <p>© 2025 Conselhos Esotéricos. Todos os direitos reservados.</p>
         </div>
       </div>
 
