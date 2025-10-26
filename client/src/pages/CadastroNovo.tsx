@@ -48,7 +48,6 @@ export default function CadastroNovo() {
     availability: '',
     profileImage: '',
     bio: '',
-    achievements: '',
     consultationTypes: [] as string[]
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -684,19 +683,21 @@ export default function CadastroNovo() {
                   />
                 </div>
 
-                {/* Conquistas */}
+                {/* Foto de Perfil */}
                 <div className="space-y-2">
-                  <Label htmlFor="achievements" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                    Conquistas e Destaques (Opcional)
+                  <Label htmlFor="profileImage" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                    <User className="w-4 h-4" />
+                    Foto de Perfil (URL) *
                   </Label>
-                  <textarea
-                    id="achievements"
-                    rows={2}
-                    placeholder="Ex: Mais de 1000 consultas realizadas, Avaliação 5 estrelas..."
-                    value={formData.achievements}
-                    onChange={(e) => handleInputChange('achievements', e.target.value)}
-                    className="w-full p-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                  <Input
+                    id="profileImage"
+                    type="url"
+                    placeholder="https://exemplo.com/sua-foto.jpg"
+                    value={formData.profileImage}
+                    onChange={(e) => handleInputChange('profileImage', e.target.value)}
+                    className="h-12"
                   />
+                  <p className="text-xs text-gray-500">Cole o link da sua foto de perfil (será exibida na home)</p>
                 </div>
 
                 {/* Valor por Hora */}
