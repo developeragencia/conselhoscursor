@@ -1,244 +1,367 @@
 # 🌙 Conselhos Esotéricos
 
-Portal completo de consultas esotéricas online com sistema de créditos, chat em tempo real e integração com consultores especializados.
+> Plataforma profissional de consultas esotéricas em tempo real
 
-## 🚀 Deploy no Vercel
+[![Status](https://img.shields.io/badge/Status-Pronto%20para%20Produ%C3%A7%C3%A3o-success)](https://github.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-100%25-blue)](https://www.typescriptlang.org/)
+[![React](https://img.shields.io/badge/React-18.3-61dafb)](https://reactjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-20+-339933)](https://nodejs.org/)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Neon-316192)](https://neon.tech/)
+
+---
+
+## 📖 Sobre o Projeto
+
+Sistema completo para conectar pessoas com consultores esotéricos, oferecendo consultas em tempo real via chat, sistema de pagamentos integrado, blog de conteúdo e painel administrativo.
+
+### ✨ Principais Funcionalidades
+
+- 💬 **Chat em Tempo Real** - WebSocket para comunicação instantânea
+- 💳 **Pagamentos Integrados** - Stripe (cartão) + PIX ready
+- 🔮 **Gestão de Consultores** - Perfis, avaliações e especialidades
+- 💰 **Sistema de Créditos** - Recarga, débito e transferência
+- 📝 **Blog CMS** - Sistema completo de publicação de conteúdo
+- 👨‍💼 **Painel Admin** - Gestão centralizada do sistema
+- 🔔 **Notificações** - Push notifications em tempo real
+- 🔒 **Segurança** - JWT, bcrypt, CORS, SSL/TLS
+
+---
+
+## 🚀 Quick Start
 
 ### Pré-requisitos
 
-1. Conta no [Vercel](https://vercel.com)
-2. Conta no [Neon](https://neon.tech) para banco de dados PostgreSQL
-3. Conta no [Stripe](https://stripe.com) para pagamentos
-4. Conta no [Anthropic](https://anthropic.com) para IA
-
-### 1. Configuração do Banco de Dados
-
-1. Crie um projeto no Neon
-2. Copie a string de conexão
-3. Configure as variáveis de ambiente no Vercel
-
-### 2. Variáveis de Ambiente
-
-Configure as seguintes variáveis no painel do Vercel:
-
-```env
-# Database
-DATABASE_URL=postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/neondb
-NEON_DATABASE_URL=postgresql://username:password@ep-xxx.us-east-1.aws.neon.tech/neondb
-
-# Authentication
-JWT_SECRET=your-super-secret-jwt-key-here
-SESSION_SECRET=your-session-secret-key-here
-
-# Google OAuth (opcional)
-GOOGLE_CLIENT_ID=your-google-client-id
-GOOGLE_CLIENT_SECRET=your-google-client-secret
-
-# Stripe
-STRIPE_PUBLISHABLE_KEY=pk_live_your-stripe-publishable-key
-STRIPE_SECRET_KEY=sk_live_your-stripe-secret-key
-STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret
-
-# Anthropic AI
-ANTHROPIC_API_KEY=your-anthropic-api-key
-
-# Server Configuration
-NODE_ENV=production
-CORS_ORIGIN=https://your-domain.vercel.app
+```bash
+Node.js 20+
+PostgreSQL (Neon)
+npm ou yarn
 ```
-
-### 3. Deploy
-
-1. **Conecte seu repositório GitHub ao Vercel:**
-   - Acesse [vercel.com](https://vercel.com)
-   - Clique em "New Project"
-   - Importe seu repositório GitHub
-
-2. **Configure o build:**
-   - Framework Preset: `Other`
-   - Build Command: `npm run vercel-build`
-   - Output Directory: `dist/public`
-   - Install Command: `npm install`
-
-3. **Deploy:**
-   - Clique em "Deploy"
-   - Aguarde o processo de build
-   - Seu site estará disponível em `https://your-project.vercel.app`
-
-## 🛠️ Desenvolvimento Local
 
 ### Instalação
 
 ```bash
-# Clone o repositório
-git clone https://github.com/seu-usuario/conselhos-esotericos.git
-cd conselhos-esotericos
+# 1. Clone o repositório
+git clone [seu-repo]
+cd conselho01
 
-# Instale as dependências
+# 2. Instale as dependências
 npm install
 
-# Configure as variáveis de ambiente
-cp env.example .env
-# Edite o arquivo .env com suas configurações
+# 3. Configure as variáveis de ambiente
+cp env.example .env.local
+# Edite .env.local com suas credenciais
 
-# Inicie o servidor de desenvolvimento
+# 4. Inicie o servidor de desenvolvimento
 npm run dev
 ```
 
-### Scripts Disponíveis
+Acesse: http://localhost:5000
 
-```bash
-npm run dev          # Servidor de desenvolvimento
-npm run build        # Build para produção
-npm run start        # Servidor de produção
-npm run check        # Verificação TypeScript
-npm run vercel-build # Build específico para Vercel
-npm run preview      # Preview da build
-```
+---
 
 ## 📁 Estrutura do Projeto
 
 ```
+conselho01/
 ├── client/                 # Frontend React
 │   └── src/
-│       ├── components/     # Componentes reutilizáveis
-│       ├── pages/         # Páginas da aplicação
-│       ├── hooks/         # Custom hooks
-│       └── utils/         # Utilitários
-├── server/                # Backend Express
-│   └── index.ts          # Servidor principal
-├── shared/               # Código compartilhado
-├── public/               # Arquivos estáticos
-├── dist/                 # Build de produção
-├── vercel.json          # Configuração Vercel
-├── package.json         # Dependências e scripts
-└── README.md           # Este arquivo
+│       ├── components/     # Componentes React
+│       ├── hooks/          # Hooks customizados
+│       ├── pages/          # Páginas da aplicação
+│       └── lib/            # Utilitários
+│
+├── server/                 # Backend Node.js
+│   ├── routes/             # Rotas da API
+│   │   ├── admin.ts
+│   │   ├── blog.ts
+│   │   ├── consultants.ts
+│   │   ├── consultations.ts
+│   │   ├── credits.ts
+│   │   ├── notifications.ts
+│   │   ├── payments.ts
+│   │   └── testimonials.ts
+│   ├── index.ts            # Servidor principal
+│   ├── database.ts         # Configuração do DB
+│   └── websocket-handler.ts # Handler WebSocket
+│
+└── docs/                   # Documentação
+    ├── NEON_DATABASE_SETUP.md
+    ├── DEPLOY_RENDER.md
+    ├── GUIA_RAPIDO_DEPLOY.md
+    └── ...
 ```
-
-## 🔧 Tecnologias Utilizadas
-
-### Frontend
-- **React 18** - Framework principal
-- **TypeScript** - Tipagem estática
-- **Vite** - Build tool
-- **Tailwind CSS** - Estilização
-- **Radix UI** - Componentes acessíveis
-- **Framer Motion** - Animações
-- **React Hook Form** - Formulários
-- **Zustand** - Gerenciamento de estado
-
-### Backend
-- **Node.js** - Runtime
-- **Express** - Framework web
-- **TypeScript** - Tipagem estática
-- **PostgreSQL** - Banco de dados
-- **Neon** - Database as a Service
-- **JWT** - Autenticação
-- **bcrypt** - Hash de senhas
-- **WebSocket** - Comunicação em tempo real
-
-### Integrações
-- **Stripe** - Pagamentos
-- **Anthropic** - IA para consultas
-- **Google OAuth** - Autenticação social
-
-## 🎯 Funcionalidades
-
-### Para Clientes
-- ✅ Cadastro e login
-- ✅ Consulta de CPF
-- ✅ Sistema de créditos
-- ✅ Chat em tempo real com consultores
-- ✅ Avaliação de consultores
-- ✅ Histórico de consultas
-- ✅ Blog esotérico
-
-### Para Consultores
-- ✅ Perfil profissional
-- ✅ Gerenciamento de consultas
-- ✅ Chat em tempo real
-- ✅ Relatórios de performance
-- ✅ Sistema de avaliações
-
-### Administrativo
-- ✅ Dashboard de métricas
-- ✅ Gerenciamento de usuários
-- ✅ Controle de créditos
-- ✅ Moderação de conteúdo
-
-## 🔒 Segurança
-
-- Autenticação JWT
-- Hash de senhas com bcrypt
-- Validação de dados com Zod
-- CORS configurado
-- Rate limiting
-- Sanitização de inputs
-
-## 📊 Performance
-
-- Build otimizado com Vite
-- Code splitting automático
-- Lazy loading de componentes
-- Cache de assets
-- Compressão gzip
-- CDN global do Vercel
-
-## 🐛 Troubleshooting
-
-### Problemas Comuns
-
-1. **Erro de build no Vercel:**
-   - Verifique se todas as variáveis de ambiente estão configuradas
-   - Confirme se o banco de dados está acessível
-   - Verifique os logs de build no painel do Vercel
-
-2. **Erro de conexão com banco:**
-   - Verifique a string de conexão
-   - Confirme se o banco está ativo no Neon
-   - Teste a conexão localmente
-
-3. **Problemas de CORS:**
-   - Configure corretamente a variável `CORS_ORIGIN`
-   - Verifique se o domínio está na lista de origens permitidas
-
-### Logs e Debug
-
-```bash
-# Logs do Vercel
-vercel logs
-
-# Logs locais
-npm run dev
-# Verifique o console para erros
-```
-
-## 📈 Monitoramento
-
-- **Vercel Analytics** - Métricas de performance
-- **Sentry** - Monitoramento de erros (opcional)
-- **Logs do Neon** - Monitoramento do banco
-
-## 🤝 Contribuição
-
-1. Fork o projeto
-2. Crie uma branch para sua feature (`git checkout -b feature/AmazingFeature`)
-3. Commit suas mudanças (`git commit -m 'Add some AmazingFeature'`)
-4. Push para a branch (`git push origin feature/AmazingFeature`)
-5. Abra um Pull Request
-
-## 📄 Licença
-
-Este projeto está sob a licença MIT. Veja o arquivo `LICENSE` para mais detalhes.
-
-## 📞 Suporte
-
-Para suporte técnico ou dúvidas sobre o deploy:
-
-- 📧 Email: suporte@conselhosesotericos.com
-- 💬 Discord: [Link do servidor]
-- 📱 WhatsApp: [Número de contato]
 
 ---
 
-**Desenvolvido com ❤️ para a comunidade esotérica brasileira**
+## 🔧 Comandos Disponíveis
+
+```bash
+# Desenvolvimento
+npm run dev              # Inicia servidor de desenvolvimento
+npm run check            # Verifica tipos TypeScript
+
+# Build
+npm run build            # Build completo (client + server)
+npm run build:client     # Build apenas do frontend
+npm run build:server     # Build apenas do backend
+
+# Produção
+npm start                # Inicia servidor de produção
+
+# Banco de Dados
+npm run db:push          # Sincroniza schema com DB
+npm run db:migrate       # Executa migrations
+```
+
+---
+
+## 🗄️ Banco de Dados
+
+### Tabelas Principais
+
+- **users** - Usuários do sistema
+- **consultants** - Dados dos consultores
+- **consultations** - Consultas realizadas
+- **messages** - Mensagens do chat
+- **credits_transactions** - Histórico de créditos
+- **testimonials** - Depoimentos
+- **blog_posts** - Posts do blog
+- **blog_categories** - Categorias do blog
+- **blog_comments** - Comentários
+- **notifications** - Notificações
+
+### Conexão
+
+O projeto usa **Neon** (PostgreSQL serverless) com connection pooling automático.
+
+---
+
+## 🔐 Variáveis de Ambiente
+
+Criar arquivo `.env.local`:
+
+```bash
+# Banco de Dados
+DATABASE_URL=postgresql://...
+NEON_DATABASE_URL=postgresql://...
+
+# Autenticação
+JWT_SECRET=seu_secret_aqui
+SESSION_SECRET=seu_session_secret
+
+# Stripe
+STRIPE_SECRET_KEY=sk_...
+STRIPE_PUBLISHABLE_KEY=pk_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# CORS
+ALLOWED_ORIGINS=http://localhost:5000
+CORS_ORIGIN=http://localhost:5000
+
+# App
+NODE_ENV=development
+PORT=5000
+```
+
+**📝 Nota:** Veja `CONFIGURACAO_ENV.md` para detalhes completos.
+
+---
+
+## 🌐 API Endpoints
+
+### Autenticação
+```
+POST /api/auth/register    - Registrar novo usuário
+POST /api/auth/login       - Login
+GET  /api/auth/me          - Dados do usuário atual
+```
+
+### Consultores
+```
+GET  /api/consultants                 - Listar consultores
+GET  /api/consultants/featured        - Consultores em destaque
+GET  /api/consultants/:id             - Detalhes do consultor
+```
+
+### Consultas
+```
+POST /api/consultations/start         - Iniciar consulta
+POST /api/consultations/:id/end       - Finalizar consulta
+GET  /api/consultations/:id/messages  - Mensagens da consulta
+GET  /api/consultations/history       - Histórico
+```
+
+### Pagamentos
+```
+GET  /api/payments/config                   - Config Stripe
+POST /api/payments/create-payment-intent    - Criar pagamento
+POST /api/payments/webhook                  - Webhook Stripe
+GET  /api/payments/history                  - Histórico
+```
+
+### Blog
+```
+GET  /api/blog/posts           - Listar posts
+GET  /api/blog/posts/:slug     - Post por slug
+POST /api/blog/posts           - Criar post (admin)
+GET  /api/blog/categories      - Categorias
+```
+
+**📝 Nota:** Veja documentação completa em `SISTEMA_COMPLETO_PRODUCAO.md`.
+
+---
+
+## 🎨 Tecnologias Utilizadas
+
+### Backend
+- **Node.js** - Runtime JavaScript
+- **Express** - Framework web
+- **TypeScript** - Tipagem estática
+- **PostgreSQL (Neon)** - Banco de dados
+- **WebSocket (ws)** - Comunicação tempo real
+- **JWT** - Autenticação
+- **Stripe** - Pagamentos
+- **bcrypt** - Hash de senhas
+
+### Frontend
+- **React 18** - UI Library
+- **TypeScript** - Tipagem estática
+- **Tailwind CSS** - Estilização
+- **Radix UI** - Componentes acessíveis
+- **Wouter** - Roteamento
+- **Lucide React** - Ícones
+- **Vite** - Build tool
+
+---
+
+## 🚀 Deploy
+
+### Render (Recomendado)
+
+```bash
+# 1. Conecte o repositório no Render
+# 2. Configure as variáveis de ambiente
+# 3. Use os comandos:
+
+Build Command:  npm ci && npm run build
+Start Command:  node server/index.js
+```
+
+**📝 Guia completo:** Veja `GUIA_RAPIDO_DEPLOY.md` para instruções passo a passo.
+
+### Custo Estimado
+- **Render Starter:** $7/mês
+- **Neon Free:** $0/mês
+- **Total:** $7/mês
+
+---
+
+## 📊 Status do Projeto
+
+### ✅ Completo
+- [x] Autenticação e autorização
+- [x] Sistema de consultores
+- [x] Chat em tempo real
+- [x] Sistema de pagamentos
+- [x] Gestão de créditos
+- [x] Blog CMS
+- [x] Painel administrativo
+- [x] Notificações
+- [x] Deploy configurado
+- [x] Documentação completa
+
+### 🔄 Opcional (Melhorias Futuras)
+- [ ] App mobile (React Native)
+- [ ] Notificações por email
+- [ ] Sistema de afiliados
+- [ ] Programa de fidelidade
+- [ ] Múltiplos idiomas
+
+---
+
+## 📚 Documentação
+
+### Guias Técnicos
+- 📖 [Setup do Banco de Dados](NEON_DATABASE_SETUP.md)
+- 🚀 [Deploy no Render](DEPLOY_RENDER.md)
+- ⚡ [Guia Rápido de Deploy](GUIA_RAPIDO_DEPLOY.md)
+- 🏗️ [Estrutura do Projeto](PROJETO_LIMPO_RENDER.md)
+
+### Resumos Executivos
+- 📊 [Sistema Completo](SISTEMA_COMPLETO_PRODUCAO.md)
+- 💡 [Melhorias Implementadas](MELHORIAS_IMPLEMENTADAS.md)
+- 🎯 [Resumo Executivo Final](RESUMO_EXECUTIVO_FINAL.md)
+
+---
+
+## 🔒 Segurança
+
+O projeto implementa:
+
+- ✅ Autenticação JWT com refresh tokens
+- ✅ Senhas hashadas com bcrypt (salt rounds: 10)
+- ✅ CORS configurado
+- ✅ SQL injection protegido (queries parametrizadas)
+- ✅ XSS protegido
+- ✅ Rate limiting preparado
+- ✅ HTTPS obrigatório em produção
+- ✅ Validação de entrada de dados
+- ✅ Tokens com expiração
+
+---
+
+## 🤝 Contribuindo
+
+Este é um projeto privado. Para sugestões ou reportar bugs, entre em contato com a equipe de desenvolvimento.
+
+---
+
+## 📝 License
+
+MIT License - veja arquivo LICENSE para detalhes.
+
+---
+
+## 👥 Equipe
+
+Desenvolvido com 💜 pela equipe Conselhos Esotéricos.
+
+---
+
+## 📞 Suporte
+
+- 📧 Email: [seu-email]
+- 💬 Discord: [seu-discord]
+- 🐛 Issues: [seu-github]/issues
+
+---
+
+## 🎯 Roadmap
+
+### Q1 2026
+- [ ] Launch inicial
+- [ ] Onboarding de consultores
+- [ ] Marketing digital
+- [ ] SEO optimization
+
+### Q2 2026
+- [ ] App mobile (iOS + Android)
+- [ ] Integração com mais gateways de pagamento
+- [ ] Sistema de avaliações expandido
+- [ ] Analytics avançado
+
+### Q3 2026
+- [ ] Sistema de afiliados
+- [ ] Programa de fidelidade
+- [ ] Expansão de conteúdo (cursos)
+- [ ] API pública
+
+---
+
+<div align="center">
+
+**🌙 Conectando pessoas com orientação espiritual de qualidade 💜**
+
+[Website](#) • [Documentação](#) • [Blog](#)
+
+</div>

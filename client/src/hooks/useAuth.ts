@@ -1,169 +1,185 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useLocation } from "wouter";
+import { useState, useEffect, useCallback } from 'react';
 
 interface User {
   id: string;
-  firstName: string;
-  lastName: string;
   email: string;
-  role: 'cliente' | 'consultor' | 'admin';
-  credits: string;
-  bonusCredits: string;
-  phone?: string;
-  cpf?: string;
-  profileImageUrl?: string;
-  isVerified: boolean;
-  createdAt: string;
+  first_name: string;
+  last_name: string;
+  role: 'user' | 'consultor' | 'admin';
+  credits: number;
 }
 
-interface LoginData {
-  email: string;
-  password: string;
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  isAuthenticated: boolean;
 }
 
-interface RegisterData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  role: 'cliente' | 'consultor';
-  phone?: string;
-  cpf?: string;
-}
-
-export function useAuth() {
-  const [, setLocation] = useLocation();
-  const queryClient = useQueryClient();
-
-  // Verificar se usuário está autenticado
-  const { data: user, isLoading } = useQuery({
-    queryKey: ["/api/auth/user"],
-    retry: false,
-    refetchOnWindowFocus: false,
-    enabled: !!localStorage.getItem('authToken'),
+export const useAuth = () => {
+  const [authState, setAuthState] = useState<AuthState>({
+    user: null,
+    token: localStorage.getItem('token'),
+    isLoading: true,
+    isAuthenticated: false
   });
 
-  // Mutation para login
-  const loginMutation = useMutation({
-    mutationFn: async (data: LoginData) => {
-      console.log('Fazendo login com:', data);
+  // Carregar dados do usuário ao iniciar
+  useEffect(() => {
+    const loadUser = async () => {
+      const token = localStorage.getItem('token');
       
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-      console.log('Resposta do login:', result);
-      
-      if (!response.ok || !result.success) {
-        throw new Error(result.error || result.message || 'Erro no login');
+      if (!token) {
+        setAuthState({
+          user: null,
+          token: null,
+          isLoading: false,
+          isAuthenticated: false
+        });
+        return;
       }
 
-      return result;
-    },
-    onSuccess: (data) => {
-      // Salvar token no localStorage
-      localStorage.setItem('authToken', data.token);
-      
-      // Configurar dados do usuário no cache
-      queryClient.setQueryData(["/api/auth/user"], data.user);
-      
-      // Forçar atualização da query
-      queryClient.invalidateQueries({ queryKey: ["/api/auth/user"] });
-      
-      // Redirecionar baseado no role
-      console.log('Login successful, redirecting user with role:', data.user.role);
-      switch (data.user.role) {
-        case 'admin':
-          setLocation('/admin-dashboard');
-          break;
-        case 'consultor':
-          setLocation('/consultant-dashboard');
-          break;
-        case 'cliente':
-        default:
-          setLocation('/client-dashboard');
-          break;
-      }
-    },
-  });
+      try {
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
-  // Mutation para registro
-  const registerMutation = useMutation({
-    mutationFn: async (data: RegisterData) => {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-
-      const result = await response.json();
-      
-      if (!response.ok) {
-        throw new Error(result.error || 'Erro no cadastro');
-      }
-
-      return result;
-    },
-    onSuccess: (data) => {
-      // Salvar token no localStorage
-      localStorage.setItem('authToken', data.token);
-      
-      // Configurar header de autenticação
-      queryClient.setQueryData(["/api/auth/user"], data.user);
-      
-      // Redirecionar baseado no role
-      switch (data.user.role) {
-        case 'consultor':
-          setLocation('/consultant-dashboard');
-          break;
-        case 'cliente':
-        default:
-          setLocation('/client-dashboard');
-          break;
-      }
-    },
-  });
-
-  // Mutation para logout
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      const token = localStorage.getItem('authToken');
-      
-      if (token) {
-        await fetch("/api/auth/logout", {
-          method: "POST",
-          headers: { 
-            "Authorization": `Bearer ${token}`,
-            "Content-Type": "application/json" 
-          },
+        if (response.ok) {
+          const user = await response.json();
+          setAuthState({
+            user,
+            token,
+            isLoading: false,
+            isAuthenticated: true
+          });
+        } else {
+          // Token inválido
+          localStorage.removeItem('token');
+          setAuthState({
+            user: null,
+            token: null,
+            isLoading: false,
+            isAuthenticated: false
+          });
+        }
+      } catch (error) {
+        console.error('Error loading user:', error);
+        setAuthState({
+          user: null,
+          token: null,
+          isLoading: false,
+          isAuthenticated: false
         });
       }
-    },
-    onSettled: () => {
-      // Limpar token e cache
-      localStorage.removeItem('authToken');
-      queryClient.setQueryData(["/api/auth/user"], null);
-      queryClient.clear();
-      
-      // Redirecionar para home
-      setLocation('/');
-    },
-  });
+    };
+
+    loadUser();
+  }, []);
+
+  const login = useCallback(async (email: string, password: string) => {
+    try {
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao fazer login');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+
+      setAuthState({
+        user: data.user,
+        token: data.token,
+        isLoading: false,
+        isAuthenticated: true
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('Login error:', error);
+      return {
+        success: false,
+        error: error.message || 'Erro ao fazer login'
+      };
+    }
+  }, []);
+
+  const register = useCallback(async (userData: {
+    email: string;
+    password: string;
+    first_name: string;
+    last_name: string;
+    cpf: string;
+    birth_date: string;
+  }) => {
+    try {
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erro ao fazer cadastro');
+      }
+
+      const data = await response.json();
+      localStorage.setItem('token', data.token);
+
+      setAuthState({
+        user: data.user,
+        token: data.token,
+        isLoading: false,
+        isAuthenticated: true
+      });
+
+      return { success: true };
+    } catch (error: any) {
+      console.error('Register error:', error);
+      return {
+        success: false,
+        error: error.message || 'Erro ao fazer cadastro'
+      };
+    }
+  }, []);
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('token');
+    setAuthState({
+      user: null,
+      token: null,
+      isLoading: false,
+      isAuthenticated: false
+    });
+  }, []);
+
+  const updateUser = useCallback((userData: Partial<User>) => {
+    setAuthState((prev) => ({
+      ...prev,
+      user: prev.user ? { ...prev.user, ...userData } : null
+    }));
+  }, []);
 
   return {
-    user,
-    isLoading,
-    isAuthenticated: !!user,
-    login: loginMutation.mutate,
-    register: registerMutation.mutate,
-    logout: logoutMutation.mutate,
-    loginError: loginMutation.error?.message,
-    registerError: registerMutation.error?.message,
-    isLoginLoading: loginMutation.isPending,
-    isRegisterLoading: registerMutation.isPending,
-    isLogoutLoading: logoutMutation.isPending,
+    user: authState.user,
+    token: authState.token,
+    isLoading: authState.isLoading,
+    isAuthenticated: authState.isAuthenticated,
+    login,
+    register,
+    logout,
+    updateUser
   };
-}
+};

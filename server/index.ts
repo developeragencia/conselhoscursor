@@ -6,18 +6,36 @@ import { Pool, neonConfig } from '@neondatabase/serverless';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import ws from 'ws';
+import { createServer } from 'http';
+
+// Import routes
+import { createConsultantsRouter } from './routes/consultants.js';
+import { createTestimonialsRouter } from './routes/testimonials.js';
+import { createCreditsRouter } from './routes/credits.js';
+import { createConsultationsRouter } from './routes/consultations.js';
+import { createAdminRouter } from './routes/admin.js';
+import { createNotificationsRouter } from './routes/notifications.js';
+import { createPaymentsRouter } from './routes/payments.js';
+import { createBlogRouter } from './routes/blog.js';
+
+// Import WebSocket handler
+import { WebSocketHandler } from './websocket-handler.js';
 
 // Configure Neon to use ws for WebSocket
 neonConfig.webSocketConstructor = ws;
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
+const server = createServer(app);
 const PORT = parseInt(process.env.PORT || '5000', 10);
 const JWT_SECRET = process.env.JWT_SECRET || 'conselhos_secret_2025';
 const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
 
 // Database
 let db: Pool | null = null;
+
+// WebSocket Handler (será inicializado após o DB)
+let wsHandler: WebSocketHandler | null = null;
 
 // Initialize database
 const initDB = async () => {
@@ -279,110 +297,11 @@ app.get('/api/auth/user', async (req, res) => {
   }
 });
 
-// === CREDITS ENDPOINTS ===
 
-app.get('/api/credits/balance', async (req, res) => {
-  try {
-    const token = req.headers.authorization?.replace('Bearer ', '');
-    if (!token) return res.status(401).json({ error: 'Token não fornecido' });
-    const decoded = jwt.verify(token, JWT_SECRET) as any;
-    
-    if (db) {
-      const result = await db.query('SELECT credits FROM users WHERE id = $1', [decoded.userId]);
-      if (result.rowCount === 0) return res.status(404).json({ error: 'Usuário não encontrado' });
-      return res.json({ credits: result.rows[0].credits });
-    }
-    return res.status(503).json({ error: 'Banco de dados indisponível' });
-  } catch (error) {
-    res.status(401).json({ error: 'Token inválido' });
-  }
-});
-
-// === CONSULTANTS ENDPOINTS ===
-
-app.get('/api/consultants/featured', (req, res) => {
-  res.json([
-    {
-      id: 1,
-      name: "Maria Silva",
-      title: "Especialista em Tarot e Astrologia",
-      specialty: "Tarot e Astrologia",
-      experience: "10 anos",
-      rating: "4.9",
-      reviewCount: 1250,
-      description: "Especialista em leitura de tarot com mais de 10 anos de experiência",
-      pricePerMinute: "3.50",
-      status: "online",
-      imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=face",
-      nextAvailable: "Agora",
-      specialties: ["Tarot", "Astrologia", "Amor"]
-    },
-    {
-      id: 2,
-      name: "João Santos",
-      title: "Especialista em Numerologia",
-      specialty: "Numerologia",
-      experience: "8 anos",
-      rating: "4.8",
-      reviewCount: 980,
-      description: "Numerólogo experiente com foco em autoconhecimento e desenvolvimento pessoal",
-      pricePerMinute: "2.80",
-      status: "busy",
-      imageUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=400&h=400&fit=crop&crop=face"
-    },
-    {
-      id: 3,
-      name: "Ana Costa",
-      title: "Médium e Vidente",
-      specialty: "Mediunidade",
-      experience: "15 anos",
-      rating: "4.95",
-      reviewCount: 2100,
-      description: "Médium experiente com dom natural para comunicação com o plano espiritual",
-      pricePerMinute: "4.20",
-      status: "online",
-      imageUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=400&h=400&fit=crop&crop=face"
-    }
-  ]);
-});
-
-// === TESTIMONIALS ENDPOINTS ===
-
-app.get('/api/testimonials', (req, res) => {
-  res.json([
-    {
-      id: 1,
-      userName: "Carolina M.",
-      rating: 5,
-      comment: "Consulta incrível! A Maria foi muito precisa e me ajudou muito com suas orientações.",
-      consultantName: "Maria Silva",
-      date: "2025-01-28",
-      verified: true
-    },
-    {
-      id: 2,
-      userName: "Roberto S.",
-      rating: 5,
-      comment: "Excelente profissional. João me trouxe clareza sobre questões importantes da minha vida.",
-      consultantName: "João Santos",
-      date: "2025-01-27",
-      verified: true
-    },
-    {
-      id: 3,
-      userName: "Fernanda L.",
-      rating: 5,
-      comment: "Ana é fantástica! Suas mensagens são sempre reconfortantes e precisas.",
-      consultantName: "Ana Costa",
-      date: "2025-01-26",
-      verified: true
-    }
-  ]);
-});
-
-// === BLOG ENDPOINTS ===
+// === BLOG ENDPOINTS (podem ser movidos para router separado) ===
 
 app.get('/api/blog/recent', (req, res) => {
+  // TODO: Implementar blog real com banco de dados
   res.json([
     {
       id: 1,
@@ -399,7 +318,7 @@ app.get('/api/blog/recent', (req, res) => {
       id: 2,
       title: "Os cristais e suas propriedades energéticas",
       excerpt: "Conheça os principais cristais e como utilizá-los para harmonizar suas energias.",
-      author: "Maria Silva",
+      author: "Equipe Conselhos Esotéricos",
       publishedAt: "2025-01-25",
       readTime: "8 min",
       category: "Cristais",
@@ -410,7 +329,7 @@ app.get('/api/blog/recent', (req, res) => {
       id: 3,
       title: "Numerologia: descobrindo seu número da sorte",
       excerpt: "Aprenda a calcular e interpretar os números que influenciam sua vida.",
-      author: "João Santos",
+      author: "Equipe Conselhos Esotéricos",
       publishedAt: "2025-01-22",
       readTime: "6 min",
       category: "Numerologia",
@@ -418,53 +337,6 @@ app.get('/api/blog/recent', (req, res) => {
       slug: "numerologia-numero-da-sorte"
     }
   ]);
-});
-
-// === CPF CONSULTATION ===
-
-app.post('/api/cpf/consulta', async (req, res) => {
-  const { cpf } = req.body;
-  
-  if (!cpf || cpf.length !== 11) {
-    return res.status(400).json({
-      success: false,
-      message: 'CPF deve ter 11 dígitos'
-    });
-  }
-
-  try {
-    console.log('🔍 Consultando CPF:', cpf);
-    
-    // Simulação de dados baseados no CPF para desenvolvimento
-    const nomes = [
-      'João Silva Santos', 'Maria Oliveira Costa', 'José Pereira Lima',
-      'Ana Carolina Souza', 'Pedro Henrique Alves', 'Juliana Ferreira',
-      'Carlos Eduardo Rocha', 'Beatriz Almeida Nunes', 'Ricardo Martins',
-      'Fernanda Ribeiro Cruz'
-    ];
-    
-    const nome = nomes[parseInt(cpf.substr(0, 2)) % nomes.length];
-    
-    // Simula delay de consulta real
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    return res.json({
-      success: true,
-      data: {
-        nome: nome,
-        cpf: cpf,
-        nascimento: '01/01/1990',
-        situacao: 'Regular'
-      }
-    });
-    
-  } catch (error) {
-    console.error('Erro na consulta CPF:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Erro interno do servidor'
-    });
-  }
 });
 
 // Health check
@@ -485,13 +357,43 @@ app.get('*', (req, res) => {
 const startServer = async () => {
   await initDB();
   
+  // Initialize WebSocket Handler
+  wsHandler = new WebSocketHandler(server, db);
+  console.log('✅ WebSocket Handler initialized');
+  
+  // Register API routes after DB initialization
+  app.use('/api/consultants', createConsultantsRouter(db));
+  app.use('/api/testimonials', createTestimonialsRouter(db));
+  app.use('/api/credits', createCreditsRouter(db));
+  app.use('/api/consultations', createConsultationsRouter(db));
+  app.use('/api/admin', createAdminRouter(db));
+  app.use('/api/notifications', createNotificationsRouter(db, wsHandler));
+  app.use('/api/payments', createPaymentsRouter(db));
+  app.use('/api/blog', createBlogRouter(db));
+  
+  console.log('✅ All API routes registered successfully');
+  console.log('📊 Available endpoints:');
+  console.log('   - Auth: /api/auth/*');
+  console.log('   - Consultants: /api/consultants/*');
+  console.log('   - Testimonials: /api/testimonials/*');
+  console.log('   - Credits: /api/credits/*');
+  console.log('   - Consultations: /api/consultations/*');
+  console.log('   - Admin: /api/admin/*');
+  console.log('   - Notifications: /api/notifications/*');
+  console.log('   - Payments: /api/payments/*');
+  console.log('   - Blog: /api/blog/*');
+  console.log('   - WebSocket: ws://localhost:' + PORT + '/ws');
+  
   if (process.env.NODE_ENV === 'production') {
-    // For Vercel, we don't start the server here
-    console.log('🚀 Server ready for Vercel deployment');
+    // For production deployment
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log('🚀 Server ready for production on port ' + PORT);
+    });
   } else {
-    // For local development and Replit
-    app.listen(PORT, '0.0.0.0', () => {
+    // For local development
+    server.listen(PORT, '0.0.0.0', () => {
       console.log(`🌙 Conselhos Esotéricos running on http://0.0.0.0:${PORT}`);
+      console.log(`🔌 WebSocket available at ws://0.0.0.0:${PORT}/ws`);
     });
   }
 };
@@ -499,7 +401,31 @@ const startServer = async () => {
 // Export for Vercel
 export default app;
 
-// Start server for local development
-if (process.env.NODE_ENV !== 'production') {
-  startServer();
-}
+// Handle graceful shutdown
+process.on('SIGTERM', () => {
+  console.log('📴 SIGTERM received, shutting down gracefully...');
+  if (wsHandler) {
+    wsHandler.cleanup();
+  }
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});
+
+process.on('SIGINT', () => {
+  console.log('📴 SIGINT received, shutting down gracefully...');
+  if (wsHandler) {
+    wsHandler.cleanup();
+  }
+  server.close(() => {
+    console.log('✅ Server closed');
+    process.exit(0);
+  });
+});
+
+// Start server
+startServer().catch((error) => {
+  console.error('❌ Failed to start server:', error);
+  process.exit(1);
+});
