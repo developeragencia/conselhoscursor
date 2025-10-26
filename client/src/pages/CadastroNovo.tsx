@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AuthLayout } from '@/components/auth/AuthLayout';
-import { User, Crown, Check, ArrowRight, ArrowLeft, Mail, Lock, Phone, Briefcase, DollarSign, FileText, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { User, Crown, Check, ArrowRight, ArrowLeft, Mail, Lock, Phone, Briefcase, DollarSign, FileText, Loader2, CheckCircle2, AlertCircle, Upload, X } from 'lucide-react';
 import { Link } from 'wouter';
 
 interface UserData {
@@ -50,6 +50,8 @@ export default function CadastroNovo() {
     bio: '',
     consultationTypes: [] as string[]
   });
+  const [profileImageFile, setProfileImageFile] = useState<File | null>(null);
+  const [profileImagePreview, setProfileImagePreview] = useState<string>('');
   const [errors, setErrors] = useState<FormErrors>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -145,8 +147,8 @@ export default function CadastroNovo() {
         newErrors.description = (newErrors.description || '') + ' Selecione pelo menos 1 idioma.';
       }
       
-      if (!formData.profileImage || !formData.profileImage.startsWith('http')) {
-        newErrors.description = (newErrors.description || '') + ' Foto de perfil é obrigatória (URL válida).';
+      if (!formData.profileImage) {
+        newErrors.profileImage = 'Foto de perfil é obrigatória';
       }
       
       if (!formData.availability) {
