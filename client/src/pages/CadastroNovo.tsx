@@ -286,6 +286,46 @@ export default function CadastroNovo() {
     }
   };
 
+  // Handler para upload de foto
+  const handleProfileImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Validar tipo de arquivo
+      if (!file.type.startsWith('image/')) {
+        setErrors(prev => ({ ...prev, profileImage: 'Por favor, selecione uma imagem válida' }));
+        return;
+      }
+
+      // Validar tamanho (máx 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        setErrors(prev => ({ ...prev, profileImage: 'Imagem deve ter no máximo 5MB' }));
+        return;
+      }
+
+      setProfileImageFile(file);
+      
+      // Criar preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setProfileImagePreview(reader.result as string);
+        setFormData(prev => ({ ...prev, profileImage: reader.result as string }));
+      };
+      reader.readAsDataURL(file);
+
+      // Limpar erro
+      if (errors.profileImage) {
+        setErrors(prev => ({ ...prev, profileImage: undefined }));
+      }
+    }
+  };
+
+  // Remover foto
+  const handleRemoveProfileImage = () => {
+    setProfileImageFile(null);
+    setProfileImagePreview('');
+    setFormData(prev => ({ ...prev, profileImage: '' }));
+  };
+
   // Render Steps
   const renderStep1 = () => (
     <div className="space-y-6">
@@ -736,17 +776,84 @@ export default function CadastroNovo() {
                 <div className="space-y-2">
                   <Label htmlFor="profileImage" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                     <User className="w-4 h-4" />
-                    Foto de Perfil (URL) *
+                    Foto de Perfil *
                   </Label>
-                  <Input
-                    id="profileImage"
-                    type="url"
-                    placeholder="https://exemplo.com/sua-foto.jpg"
-                    value={formData.profileImage}
-                    onChange={(e) => handleInputChange('profileImage', e.target.value)}
-                    className="h-12"
-                  />
-                  <p className="text-xs text-gray-500">Cole o link da sua foto de perfil (será exibida na home)</p>
+                  
+                  {/* Preview da Imagem */}
+                  {profileImagePreview ? (
+                    <div className="relative w-full">
+                      <div className="flex items-center gap-4 p-4 border rounded-lg bg-gray-50 dark:bg-gray-800">
+                        <img 
+                          src={profileImagePreview} 
+                          alt="Preview" 
+                          className="w-24 h-24 rounded-full object-cover border-4 border-purple-500"
+                        />
+                        <div className="flex-1">
+                          <p className="text-sm font-medium text-gray-900 dark:text-white">
+                            {profileImageFile?.name}
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {profileImageFile && (profileImageFile.size / 1024 / 1024).toFixed(2)} MB
+                          </p>
+                          <p className="text-xs text-green-600 dark:text-green-400 mt-1 flex items-center gap-1">
+                            <Check className="w-3 h-3" />
+                            Imagem carregada com sucesso
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          onClick={handleRemoveProfileImage}
+                          variant="outline"
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="relative">
+                      <input
+                        id="profileImage"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleProfileImageChange}
+                        className="hidden"
+                      />
+                      <label
+                        htmlFor="profileImage"
+                        className={`flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors ${
+                          errors.profileImage 
+                            ? 'border-red-500 bg-red-50 dark:bg-red-900/10' 
+                            : 'border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700'
+                        }`}
+                      >
+                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                          <Upload className={`w-10 h-10 mb-3 ${
+                            errors.profileImage ? 'text-red-500' : 'text-gray-400'
+                          }`} />
+                          <p className="mb-2 text-sm text-gray-700 dark:text-gray-300 font-medium">
+                            <span className="text-purple-600 dark:text-purple-400">Clique para fazer upload</span> ou arraste a imagem
+                          </p>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            PNG, JPG, JPEG até 5MB
+                          </p>
+                        </div>
+                      </label>
+                    </div>
+                  )}
+
+                  <p className="text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <AlertCircle className="w-3 h-3" />
+                    Esta foto aparecerá no seu perfil público na home
+                  </p>
+
+                  {errors.profileImage && (
+                    <p className="text-sm text-red-500 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      {errors.profileImage}
+                    </p>
+                  )}
                 </div>
 
                 {/* Valor por Hora */}
