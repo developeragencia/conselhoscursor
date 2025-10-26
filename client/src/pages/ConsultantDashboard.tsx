@@ -646,7 +646,7 @@ export default function ConsultantDashboard() {
                     <Label htmlFor="firstName">Nome</Label>
                     <Input 
                       id="firstName" 
-                      value={user.firstName} 
+                      value={firstName} 
                       readOnly={!editMode}
                       className={editMode ? '' : 'bg-gray-50'}
                     />
@@ -655,7 +655,7 @@ export default function ConsultantDashboard() {
                     <Label htmlFor="lastName">Sobrenome</Label>
                     <Input 
                       id="lastName" 
-                      value={user.lastName} 
+                      value={lastName} 
                       readOnly={!editMode}
                       className={editMode ? '' : 'bg-gray-50'}
                     />
