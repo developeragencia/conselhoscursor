@@ -61,7 +61,7 @@ export default function CadastroNovo() {
   const formatCPF = (value: string) => {
     const numbers = value.replace(/\D/g, '');
     if (numbers.length <= 11) {
-      return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+    return numbers.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     }
     return value;
   };
@@ -205,7 +205,7 @@ export default function CadastroNovo() {
   // Submit final
   const handleSubmit = async () => {
     console.log('🔍 Validando step 3...');
-    
+
     if (!validateStep3()) {
       console.error('❌ Validação falhou');
       setError('Por favor, preencha todos os campos obrigatórios corretamente');
@@ -334,7 +334,7 @@ export default function CadastroNovo() {
           type="button"
           onClick={() => setAccountType('cliente')}
           className={`relative p-6 rounded-xl border-2 transition-all duration-200 text-left ${
-            accountType === 'cliente'
+              accountType === 'cliente'
               ? 'border-orange-500 bg-orange-50 dark:bg-orange-900/20 shadow-lg'
               : 'border-gray-200 dark:border-gray-700 hover:border-orange-300 dark:hover:border-orange-600'
           }`}
@@ -346,26 +346,26 @@ export default function CadastroNovo() {
               <User className={`w-6 h-6 ${
                 accountType === 'cliente' ? 'text-white' : 'text-gray-600 dark:text-gray-400'
               }`} />
-            </div>
+              </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                 Sou Cliente
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Quero consultar especialistas
-              </p>
-            </div>
+                </p>
+              </div>
             {accountType === 'cliente' && (
               <CheckCircle2 className="w-6 h-6 text-orange-500" />
             )}
-          </div>
+                </div>
           <div className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-green-500" />
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
               <span>Consultas online seguras</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-green-500" />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
               <span>Acesso a diversos especialistas</span>
             </div>
           </div>
@@ -375,7 +375,7 @@ export default function CadastroNovo() {
           type="button"
           onClick={() => setAccountType('consultor')}
           className={`relative p-6 rounded-xl border-2 transition-all duration-200 text-left ${
-            accountType === 'consultor'
+              accountType === 'consultor'
               ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/20 shadow-lg'
               : 'border-gray-200 dark:border-gray-700 hover:border-purple-300 dark:hover:border-purple-600'
           }`}
@@ -387,40 +387,40 @@ export default function CadastroNovo() {
               <Crown className={`w-6 h-6 ${
                 accountType === 'consultor' ? 'text-white' : 'text-gray-600 dark:text-gray-400'
               }`} />
-            </div>
+              </div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                 Sou Consultor
               </h3>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Quero oferecer meus serviços
-              </p>
-            </div>
+                </p>
+              </div>
             {accountType === 'consultor' && (
               <CheckCircle2 className="w-6 h-6 text-purple-500" />
             )}
           </div>
           <div className="mt-4 space-y-2 text-sm text-gray-600 dark:text-gray-400">
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-green-500" />
-              <span>Perfil profissional</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 text-green-500" />
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
+                  <span>Perfil profissional</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Check className="w-4 h-4 text-green-500" />
               <span>Receba pagamentos seguros</span>
             </div>
           </div>
         </button>
-      </div>
+        </div>
 
-      <Button
+        <Button 
         onClick={nextStep}
         className="w-full h-12 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600 text-white font-semibold"
-        size="lg"
-      >
-        Continuar
+          size="lg"
+        >
+          Continuar
         <ArrowRight className="w-5 h-5 ml-2" />
-      </Button>
+        </Button>
 
       <div className="text-center text-sm text-gray-600 dark:text-gray-400">
         Já tem uma conta?{' '}
@@ -474,19 +474,19 @@ export default function CadastroNovo() {
             </p>
           )}
         </div>
-      </div>
+        </div>
 
-      {error && (
+        {error && (
         <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
           <AlertCircle className="w-4 h-4 text-red-600" />
           <AlertDescription className="text-red-800 dark:text-red-200">
             {error}
           </AlertDescription>
-        </Alert>
-      )}
+          </Alert>
+        )}
 
       <div className="flex gap-3">
-        <Button
+        <Button 
           type="button"
           onClick={prevStep}
           variant="outline"
@@ -502,8 +502,8 @@ export default function CadastroNovo() {
         >
           Continuar
           <ArrowRight className="w-5 h-5 ml-2" />
-        </Button>
-      </div>
+          </Button>
+        </div>
     </div>
   );
 
@@ -553,7 +553,7 @@ export default function CadastroNovo() {
               </p>
             )}
           </div>
-        </div>
+          </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
@@ -604,9 +604,9 @@ export default function CadastroNovo() {
             <div className="border-t pt-4 mt-4">
               <h3 className="text-lg font-semibold text-purple-600 dark:text-purple-400 mb-4 flex items-center gap-2">
                 <Briefcase className="w-5 h-5" />
-                Dados Profissionais
-              </h3>
-              
+              Dados Profissionais
+            </h3>
+            
               <div className="space-y-4">
                 {/* Especialidade Principal */}
                 <div className="space-y-2">
@@ -631,14 +631,14 @@ export default function CadastroNovo() {
                 </div>
 
                 {/* Bio Profissional */}
-                <div className="space-y-2">
+            <div className="space-y-2">
                   <Label htmlFor="bio" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                     <FileText className="w-4 h-4" />
                     Bio Profissional (Para o perfil público) *
                   </Label>
-                  <textarea
+              <textarea
                     id="bio"
-                    rows={3}
+                rows={3}
                     placeholder="Ex: Tarólogo há 10 anos, especializado em amor e carreira..."
                     value={formData.bio}
                     onChange={(e) => handleInputChange('bio', e.target.value)}
@@ -769,8 +769,8 @@ export default function CadastroNovo() {
                     value={formData.certifications}
                     onChange={(e) => handleInputChange('certifications', e.target.value)}
                     className="w-full p-3 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
-                  />
-                </div>
+              />
+            </div>
 
                 {/* Foto de Perfil */}
                 <div className="space-y-2">
@@ -858,18 +858,18 @@ export default function CadastroNovo() {
 
                 {/* Valor por Hora */}
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
+              <div className="space-y-2">
                     <Label htmlFor="hourlyRate" className="text-sm font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2">
                       <DollarSign className="w-4 h-4" />
                       Valor por Hora (R$) *
                     </Label>
-                    <Input
-                      id="hourlyRate"
-                      type="number"
-                      min="0"
-                      step="0.01"
+                <Input
+                  id="hourlyRate"
+                  type="number"
+                  min="0"
+                  step="0.01"
                       placeholder="50.00"
-                      value={formData.hourlyRate}
+                  value={formData.hourlyRate}
                       onChange={(e) => handleInputChange('hourlyRate', e.target.value)}
                       className={`h-12 ${errors.hourlyRate ? 'border-red-500' : ''}`}
                     />
@@ -906,14 +906,14 @@ export default function CadastroNovo() {
         )}
       </div>
 
-      {error && (
+        {error && (
         <Alert className="border-red-200 bg-red-50 dark:bg-red-900/20">
           <AlertCircle className="w-4 h-4 text-red-600" />
           <AlertDescription className="text-red-800 dark:text-red-200">
             {error}
           </AlertDescription>
-        </Alert>
-      )}
+          </Alert>
+        )}
 
       <div className="flex gap-3">
         <Button
@@ -924,16 +924,16 @@ export default function CadastroNovo() {
           disabled={loading}
         >
           <ArrowLeft className="w-5 h-5 mr-2" />
-          Voltar
-        </Button>
-        <Button
+            Voltar
+          </Button>
+          <Button 
           type="button"
           onClick={(e) => {
             e.preventDefault();
             console.log('🔘 Botão Finalizar clicado');
             handleSubmit();
           }}
-          disabled={loading}
+            disabled={loading}
           className="flex-1 h-12 bg-gradient-to-r from-purple-600 to-orange-500 hover:from-purple-700 hover:to-orange-600"
         >
           {loading ? (
@@ -947,8 +947,8 @@ export default function CadastroNovo() {
               <Check className="w-5 h-5 ml-2" />
             </>
           )}
-        </Button>
-      </div>
+          </Button>
+        </div>
     </div>
   );
 
@@ -956,18 +956,18 @@ export default function CadastroNovo() {
     <div className="text-center space-y-6">
       <div className="mx-auto w-20 h-20 bg-green-500 rounded-full flex items-center justify-center animate-bounce">
         <CheckCircle2 className="w-10 h-10 text-white" />
-      </div>
+        </div>
       
       <div className="space-y-2">
-        <h2 className="text-2xl font-bold text-green-600 dark:text-green-400">
+          <h2 className="text-2xl font-bold text-green-600 dark:text-green-400">
           Cadastro Realizado com Sucesso!
-        </h2>
+          </h2>
         <p className="text-gray-600 dark:text-gray-400">
           {accountType === 'cliente' 
             ? 'Sua conta foi criada. Redirecionando para seu painel...'
             : 'Sua conta foi criada. Aguarde aprovação da equipe.'}
-        </p>
-      </div>
+          </p>
+        </div>
 
       <div className="flex items-center justify-center space-x-2 text-gray-500">
         <Loader2 className="w-5 h-5 animate-spin" />
