@@ -34,26 +34,8 @@ export const createConsultantsRouter = (db: Pool | null) => {
 
       const result = await db.query(query, params);
       
-      // Transformar campos snake_case para camelCase
-      const consultants = result.rows.map(row => ({
-        id: row.id,
-        slug: row.slug,
-        name: row.name,
-        title: row.title,
-        specialty: row.specialty,
-        description: row.description,
-        pricePerMinute: row.price_per_minute,
-        rating: row.rating,
-        reviewCount: row.review_count,
-        status: row.status,
-        imageUrl: row.image_url,
-        whatsapp: row.whatsapp || '',
-        isActive: true,
-        createdAt: row.created_at
-      }));
-      
       res.json({
-        consultants: consultants,
+        consultants: result.rows,
         total: result.rowCount,
         limit: parseInt(limit as string),
         offset: parseInt(offset as string)
@@ -73,30 +55,12 @@ export const createConsultantsRouter = (db: Pool | null) => {
 
       const result = await db.query(`
         SELECT * FROM consultants 
-        WHERE status IN ('online', 'busy')
+        WHERE status = 'online'
         ORDER BY rating DESC, review_count DESC 
         LIMIT 6
       `);
 
-      // Transformar campos snake_case para camelCase
-      const consultants = result.rows.map(row => ({
-        id: row.id,
-        slug: row.slug,
-        name: row.name,
-        title: row.title,
-        specialty: row.specialty,
-        description: row.description,
-        pricePerMinute: row.price_per_minute,
-        rating: row.rating,
-        reviewCount: row.review_count,
-        status: row.status,
-        imageUrl: row.image_url,
-        whatsapp: row.whatsapp || '',
-        isActive: true,
-        createdAt: row.created_at
-      }));
-
-      res.json(consultants);
+      res.json(result.rows);
     } catch (error) {
       console.error('Erro ao buscar consultores em destaque:', error);
       res.status(500).json({ error: 'Erro ao buscar consultores' });
@@ -121,27 +85,7 @@ export const createConsultantsRouter = (db: Pool | null) => {
         return res.status(404).json({ error: 'Consultor não encontrado' });
       }
 
-      const row = result.rows[0];
-      
-      // Transformar campos snake_case para camelCase
-      const consultant = {
-        id: row.id,
-        slug: row.slug,
-        name: row.name,
-        title: row.title,
-        specialty: row.specialty,
-        description: row.description,
-        pricePerMinute: row.price_per_minute,
-        rating: row.rating,
-        reviewCount: row.review_count,
-        status: row.status,
-        imageUrl: row.image_url,
-        whatsapp: row.whatsapp || '',
-        isActive: true,
-        createdAt: row.created_at
-      };
-
-      res.json(consultant);
+      res.json(result.rows[0]);
     } catch (error) {
       console.error('Erro ao buscar consultor:', error);
       res.status(500).json({ error: 'Erro ao buscar consultor' });
