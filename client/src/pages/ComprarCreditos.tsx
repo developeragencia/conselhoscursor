@@ -150,7 +150,7 @@ export default function ComprarCreditos() {
   return (
     <div style={{minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '60px 20px'}}>
       <div style={{maxWidth: '1400px', margin: '0 auto'}}>
-        {/* Header */}
+      {/* Header */}
         <div style={{textAlign: 'center', marginBottom: '50px'}}>
           <h1 style={{
             fontSize: '56px',
@@ -160,7 +160,7 @@ export default function ComprarCreditos() {
             textShadow: '0 4px 6px rgba(0,0,0,0.3)'
           }}>
             💰 Comprar Créditos
-          </h1>
+            </h1>
           <p style={{fontSize: '22px', color: 'rgba(255,255,255,0.9)', marginBottom: '20px'}}>
             Escolha o melhor pacote para você
           </p>
@@ -186,7 +186,7 @@ export default function ComprarCreditos() {
         }}>
           {packages.map((pkg) => (
             <div
-              key={pkg.id}
+                key={pkg.id}
               style={{
                 background: 'white',
                 borderRadius: '20px',
@@ -219,8 +219,8 @@ export default function ComprarCreditos() {
                   boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
                 }}>
                   {pkg.badge}
-                </div>
-              )}
+                  </div>
+                )}
 
               {/* Header do Pacote */}
               <div style={{
@@ -249,15 +249,15 @@ export default function ComprarCreditos() {
                   color: 'white',
                   marginBottom: '5px'
                 }}>
-                  R$ {pkg.price}
-                </div>
+                          R$ {pkg.price}
+                        </div>
                 <div style={{
                   fontSize: '18px',
                   color: 'rgba(255,255,255,0.8)'
                 }}>
                   {pkg.credits} créditos
-                </div>
-              </div>
+                          </div>
+                    </div>
 
               {/* Conteúdo */}
               <div style={{padding: '30px'}}>
@@ -272,13 +272,13 @@ export default function ComprarCreditos() {
                       color: '#374151'
                     }}>
                       <span style={{color: '#10b981', marginRight: '10px', fontSize: '20px'}}>✓</span>
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
 
                 <button
-                  onClick={() => handlePurchase(pkg)}
+                      onClick={() => handlePurchase(pkg)}
                   disabled={processing}
                   style={{
                     width: '100%',
@@ -296,9 +296,9 @@ export default function ComprarCreditos() {
                 >
                   {processing ? '⏳ Processando...' : '🛒 Comprar Agora'}
                 </button>
-              </div>
-            </div>
-          ))}
+                        </div>
+                        </div>
+            ))}
         </div>
 
         {/* Benefícios */}
@@ -316,7 +316,7 @@ export default function ComprarCreditos() {
             color: '#111827'
           }}>
             Por que comprar créditos?
-          </h2>
+            </h2>
           <div style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
