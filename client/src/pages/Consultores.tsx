@@ -6,8 +6,10 @@ export default function Consultores() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSpecialty, setFilterSpecialty] = useState('all');
   const [filterStatus, setFilterStatus] = useState('all');
+  const [userCredits, setUserCredits] = useState(null);
 
   useEffect(() => {
+    // Buscar consultores
     fetch('/api/consultants?limit=50')
       .then(res => res.json())
       .then(data => {
@@ -15,7 +17,85 @@ export default function Consultores() {
         setLoading(false);
       })
       .catch(() => setLoading(false));
+
+    // Buscar créditos do usuário (se logado)
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (token) {
+      fetch('/api/auth/user', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      })
+      .then(res => res.json())
+      .then(data => {
+        const user = data.user || data;
+        setUserCredits(parseFloat(user.credits) || 0);
+      })
+      .catch(() => {});
+    }
   }, []);
+
+  const handleConsultClick = async (consultant) => {
+    // Verificar se está logado
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (!token) {
+      alert('⚠️ Você precisa fazer login para consultar!');
+      window.location.href = '/login';
+      return;
+    }
+
+    // Verificar créditos
+    if (userCredits === null || userCredits < 5) {
+      const confirmar = confirm(
+        `💰 Você precisa de no mínimo R$ 5,00 em créditos para iniciar uma consulta.\n\n` +
+        `Seu saldo atual: R$ ${(userCredits || 0).toFixed(2)}\n\n` +
+        `Deseja comprar créditos agora?`
+      );
+      if (confirmar) {
+        window.location.href = '/comprar/creditos';
+      }
+      return;
+    }
+
+    // Confirmar início da consulta
+    const price = parseFloat(consultant.pricePerMinute) || 0;
+    const confirmar = confirm(
+      `🔮 Iniciar consulta com ${consultant.name}?\n\n` +
+      `💰 Valor: R$ ${price.toFixed(2)}/minuto\n` +
+      `💳 Seu saldo: R$ ${userCredits.toFixed(2)}\n\n` +
+      `A cobrança será feita proporcionalmente ao tempo de consulta.`
+    );
+
+    if (!confirmar) return;
+
+    // Iniciar consulta
+    try {
+      const response = await fetch('/api/consultations/start', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ consultant_id: consultant.id })
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        alert(`✅ Consulta iniciada com sucesso!\n\nID: ${data.consultation.id}`);
+        window.location.href = `/consultation/${data.consultation.id}`;
+      } else {
+        alert(`❌ Erro: ${data.error}`);
+        if (data.error.includes('Créditos insuficientes')) {
+          const comprar = confirm('Deseja comprar créditos agora?');
+          if (comprar) {
+            window.location.href = '/comprar/creditos';
+          }
+        }
+      }
+    } catch (err) {
+      alert('❌ Erro ao iniciar consulta. Tente novamente.');
+      console.error(err);
+    }
+  };
 
   const specialties = ['all', ...new Set(consultants.map(c => c.specialty))];
 
@@ -84,8 +164,38 @@ export default function Consultores() {
             ✨ Nossos Consultores Especializados
           </h1>
           <p style={{fontSize: '22px', color: 'rgba(255,255,255,0.9)', fontWeight: '500'}}>
-            {filteredConsultants.length} especialistas disponíveis para você
+            {filteredConsultants.length} especialistas disponíveis
           </p>
+          {userCredits !== null && (
+            <div style={{
+              marginTop: '20px',
+              display: 'inline-block',
+              background: 'rgba(255,255,255,0.2)',
+              padding: '12px 24px',
+              borderRadius: '20px',
+              backdropFilter: 'blur(10px)'
+            }}>
+              <span style={{color: 'white', fontSize: '18px', fontWeight: '600'}}>
+                💰 Seu saldo: R$ {userCredits.toFixed(2)}
+              </span>
+              <button
+                onClick={() => window.location.href = '/comprar/creditos'}
+                style={{
+                  marginLeft: '12px',
+                  padding: '6px 16px',
+                  background: '#10b981',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '12px',
+                  fontSize: '14px',
+                  fontWeight: '600',
+                  cursor: 'pointer'
+                }}
+              >
+                + Comprar Créditos
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Filtros */}
@@ -117,11 +227,8 @@ export default function Consultores() {
                   border: '2px solid #e5e7eb',
                   borderRadius: '10px',
                   fontSize: '16px',
-                  outline: 'none',
-                  transition: 'all 0.3s'
+                  outline: 'none'
                 }}
-                onFocus={(e) => e.target.style.borderColor = '#667eea'}
-                onBlur={(e) => e.target.style.borderColor = '#e5e7eb'}
               />
             </div>
 
@@ -140,8 +247,7 @@ export default function Consultores() {
                   borderRadius: '10px',
                   fontSize: '16px',
                   outline: 'none',
-                  cursor: 'pointer',
-                  background: 'white'
+                  cursor: 'pointer'
                 }}
               >
                 <option value="all">Todas</option>
@@ -166,8 +272,7 @@ export default function Consultores() {
                   borderRadius: '10px',
                   fontSize: '16px',
                   outline: 'none',
-                  cursor: 'pointer',
-                  background: 'white'
+                  cursor: 'pointer'
                 }}
               >
                 <option value="all">Todos</option>
@@ -177,33 +282,6 @@ export default function Consultores() {
               </select>
             </div>
           </div>
-
-          {/* Botão Limpar */}
-          {(searchTerm || filterSpecialty !== 'all' || filterStatus !== 'all') && (
-            <button
-              onClick={() => {
-                setSearchTerm('');
-                setFilterSpecialty('all');
-                setFilterStatus('all');
-              }}
-              style={{
-                marginTop: '20px',
-                padding: '10px 24px',
-                background: '#ef4444',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                fontSize: '16px',
-                fontWeight: '600',
-                cursor: 'pointer',
-                transition: 'all 0.3s'
-              }}
-              onMouseOver={(e) => e.target.style.background = '#dc2626'}
-              onMouseOut={(e) => e.target.style.background = '#ef4444'}
-            >
-              🗑️ Limpar Filtros
-            </button>
-          )}
         </div>
 
         {/* Grid de Consultores */}
@@ -212,16 +290,12 @@ export default function Consultores() {
             background: 'white',
             borderRadius: '16px',
             padding: '60px',
-            textAlign: 'center',
-            boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)'
+            textAlign: 'center'
           }}>
             <div style={{fontSize: '80px', marginBottom: '20px'}}>😔</div>
             <h2 style={{fontSize: '28px', color: '#374151', marginBottom: '10px'}}>
               Nenhum consultor encontrado
             </h2>
-            <p style={{fontSize: '18px', color: '#6b7280'}}>
-              Tente ajustar os filtros de busca
-            </p>
           </div>
         ) : (
           <div style={{
@@ -241,8 +315,7 @@ export default function Consultores() {
                     borderRadius: '16px',
                     overflow: 'hidden',
                     boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)',
-                    transition: 'all 0.3s',
-                    cursor: 'pointer'
+                    transition: 'all 0.3s'
                   }}
                   onMouseOver={(e) => {
                     e.currentTarget.style.transform = 'translateY(-8px)';
@@ -260,7 +333,6 @@ export default function Consultores() {
                       alt={c.name}
                       style={{width: '100%', height: '100%', objectFit: 'cover'}}
                     />
-                    {/* Badge Status */}
                     <div style={{
                       position: 'absolute',
                       top: '12px',
@@ -271,69 +343,26 @@ export default function Consultores() {
                       color: 'white',
                       fontSize: '14px',
                       fontWeight: '700',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.2)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '6px'
+                      boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
                     }}>
-                      <div style={{
-                        width: '8px',
-                        height: '8px',
-                        borderRadius: '50%',
-                        background: 'white',
-                        animation: c.status === 'online' ? 'pulse 2s infinite' : 'none'
-                      }}></div>
                       {getStatusText(c.status)}
                     </div>
-                    <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>
                   </div>
 
                   {/* Conteúdo */}
                   <div style={{padding: '24px'}}>
-                    <h2 style={{
-                      fontSize: '24px',
-                      fontWeight: '700',
-                      color: '#111827',
-                      marginBottom: '6px'
-                    }}>
+                    <h2 style={{fontSize: '24px', fontWeight: '700', color: '#111827', marginBottom: '6px'}}>
                       {c.name}
                     </h2>
-                    <p style={{
-                      fontSize: '15px',
-                      color: '#6b7280',
-                      marginBottom: '16px',
-                      fontWeight: '500'
-                    }}>
+                    <p style={{fontSize: '15px', color: '#6b7280', marginBottom: '16px'}}>
                       {c.title}
                     </p>
 
-                    {/* Especialidade Badge */}
-                    <div style={{
-                      display: 'inline-block',
-                      padding: '6px 14px',
-                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                      color: 'white',
-                      borderRadius: '20px',
-                      fontSize: '13px',
-                      fontWeight: '600',
-                      marginBottom: '16px'
-                    }}>
-                      🎯 {c.specialty}
-                    </div>
-
                     {/* Rating */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '8px',
-                      marginBottom: '16px'
-                    }}>
+                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px'}}>
                       <div style={{display: 'flex', gap: '2px'}}>
                         {[...Array(5)].map((_, i) => (
-                          <span key={i} style={{
-                            fontSize: '18px',
-                            color: i < Math.floor(rating) ? '#fbbf24' : '#e5e7eb'
-                          }}>
+                          <span key={i} style={{fontSize: '18px', color: i < Math.floor(rating) ? '#fbbf24' : '#e5e7eb'}}>
                             ★
                           </span>
                         ))}
@@ -375,52 +404,27 @@ export default function Consultores() {
                         R$ {price.toFixed(2)}/min
                       </div>
 
-                      {/* Botões de Ação */}
-                      <div style={{display: 'flex', gap: '10px'}}>
-                        <button
-                          onClick={() => window.location.href = `/chat/${c.id}`}
-                          style={{
-                            width: '44px',
-                            height: '44px',
-                            borderRadius: '50%',
-                            background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                            border: 'none',
-                            color: 'white',
-                            fontSize: '20px',
-                            cursor: 'pointer',
-                            transition: 'all 0.3s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                          title="Chat"
-                          onMouseOver={(e) => e.target.style.transform = 'scale(1.1)'}
-                          onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-                        >
-                          💬
-                        </button>
-                        <button
-                          style={{
-                            width: '44px',
-                            height: '44px',
-                            borderRadius: '50%',
-                            background: '#10b981',
-                            border: 'none',
-                            color: 'white',
-                            fontSize: '20px',
-                            cursor: 'pointer',
-                            transition: 'all 0.3s',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
-                          title="Ligar"
-                          onMouseOver={(e) => e.target.style.transform = 'scale(1.1)'}
-                          onMouseOut={(e) => e.target.style.transform = 'scale(1)'}
-                        >
-                          📞
-                        </button>
-                      </div>
+                      {/* Botão Iniciar Consulta */}
+                      <button
+                        onClick={() => handleConsultClick(c)}
+                        disabled={c.status !== 'online'}
+                        style={{
+                          padding: '12px 24px',
+                          borderRadius: '12px',
+                          background: c.status === 'online' 
+                            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
+                            : '#d1d5db',
+                          border: 'none',
+                          color: 'white',
+                          fontSize: '16px',
+                          fontWeight: '700',
+                          cursor: c.status === 'online' ? 'pointer' : 'not-allowed',
+                          transition: 'all 0.3s'
+                        }}
+                        title={c.status === 'online' ? 'Iniciar consulta' : 'Consultor indisponível'}
+                      >
+                        {c.status === 'online' ? '🔮 Consultar' : '⏸️ Indisponível'}
+                      </button>
                     </div>
                   </div>
                 </div>
