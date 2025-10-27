@@ -217,175 +217,182 @@ export const Header: React.FC = () => {
               </motion.div>
             </Link>
 
-            {/* Auth Button */}
-            {isLoggedIn ? (
-              <div className="flex items-center space-x-2">
-                <Link href={
-                  (currentUser as any)?.role === 'admin' ? '/admin-dashboard' :
-                  (currentUser as any)?.role === 'consultor' ? '/consultant-dashboard' :
-                  '/client-dashboard'
-                }>
-                  <motion.button
-                    className="flex items-center space-x-2 px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary transition-colors duration-200"
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">
-                        {(currentUser as any)?.firstName?.charAt(0)?.toUpperCase() || (currentUser as any)?.email?.charAt(0)?.toUpperCase() || "U"}
-                      </span>
-                    </div>
-                    <span className="hidden md:block">
-                      {(currentUser as any)?.firstName || (currentUser as any)?.email?.split('@')[0] || "Usuário"}
-                    </span>
-                  </motion.button>
-                </Link>
-                <motion.button
-                  onClick={() => {
-                    logout();
-                    window.location.href = '/';
-                  }}
-                  className="flex items-center space-x-1 px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 transition-colors duration-200"
+            {/* User Avatar for logged users */}
+            {isLoggedIn && (
+              <Link href={
+                (currentUser as any)?.role === 'admin' ? '/admin-dashboard' :
+                (currentUser as any)?.role === 'consultor' ? '/consultant-dashboard' :
+                '/client-dashboard'
+              }>
+                <motion.div
+                  className="flex items-center space-x-2 p-2 rounded-lg hover:bg-primary/10 transition-all duration-200"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <LogOut className="h-4 w-4" />
-                  <span>Sair</span>
-                </motion.button>
-              </div>
-            ) : (
-              <div className="flex items-center space-x-3">
-                <Link href="/cadastro">
-                  <motion.button
-                    className="px-4 py-2 text-purple-600 hover:text-purple-700 font-semibold border-2 border-purple-300 hover:border-purple-500 rounded-lg transition-all duration-300 hover:bg-purple-50"
-                    whileHover={{ scale: 1.05, boxShadow: "0 4px 12px rgba(147, 51, 234, 0.25)" }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    CADASTRAR
-                  </motion.button>
-                </Link>
-                <Link href="/login">
-                  <motion.button
-                    className="px-6 py-2 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-700 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-300"
-                    whileHover={{ 
-                      scale: 1.05, 
-                      boxShadow: "0 8px 25px rgba(147, 51, 234, 0.4)" 
-                    }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    ENTRAR
-                  </motion.button>
-                </Link>
-              </div>
+                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {(currentUser as any)?.firstName?.charAt(0)?.toUpperCase() || (currentUser as any)?.email?.charAt(0)?.toUpperCase() || "U"}
+                    </span>
+                  </div>
+                </motion.div>
+              </Link>
             )}
 
-            {/* Mobile menu button */}
+            {/* Menu button - SEMPRE VISÍVEL */}
             <motion.button
-              className="md:hidden p-2 text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200 relative z-50"
+              className="p-2 text-gray-600 hover:text-primary hover:bg-primary/10 rounded-lg transition-colors duration-200 relative z-50"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.9 }}
             >
               {isMobileMenuOpen ? (
-                <X className="h-5 w-5 sm:h-6 sm:w-6" />
+                <X className="h-6 w-6" />
               ) : (
-                <Menu className="h-5 w-5 sm:h-6 sm:w-6" />
+                <Menu className="h-6 w-6" />
               )}
             </motion.button>
           </div>
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Sidebar Menu - SEMPRE LATERAL */}
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <motion.div
-            className="md:hidden bg-white border-t border-gray-200 shadow-lg fixed left-0 right-0 top-20 sm:top-24 z-40"
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="container mx-auto px-4 py-4 max-h-[70vh] overflow-y-auto">
-              <nav className="space-y-2">
-                {navigation.map((item, index) => (
-                  <div key={item.name} className="space-y-1">
-                    {item.hasSubmenu ? (
-                      <div>
-                        <motion.div
-                          className="block px-4 py-3 rounded-lg font-medium text-gray-700 bg-gray-50 border border-gray-200"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.1 }}
-                        >
-                          {item.name}
-                        </motion.div>
-                        <div className="ml-4 space-y-1 mt-1">
-                          {item.submenu?.map((subItem, subIndex) => (
-                            <Link key={subItem.name} href={subItem.href}>
-                              <motion.div
-                                className="block px-3 py-2 rounded-lg text-sm text-gray-600 hover:text-primary hover:bg-primary/10 transition-colors duration-200"
-                                onClick={() => setIsMobileMenuOpen(false)}
-                                initial={{ opacity: 0, x: -15 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ duration: 0.2, delay: (index * 0.1) + (subIndex * 0.05) }}
-                              >
-                                {subItem.name}
-                              </motion.div>
-                            </Link>
-                          ))}
-                        </div>
+          <>
+            {/* Overlay */}
+            <motion.div
+              className="fixed inset-0 bg-black/50 z-40"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+            
+            {/* Sidebar */}
+            <motion.div
+              className="fixed right-0 top-0 bottom-0 w-80 bg-white shadow-2xl z-50 overflow-y-auto"
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
+              transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            >
+              <div className="p-6">
+                {/* Close button */}
+                <div className="flex justify-between items-center mb-6">
+                  <h2 className="text-xl font-bold text-gray-800">Menu</h2>
+                  <button
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                  >
+                    <X className="h-6 w-6 text-gray-600" />
+                  </button>
+                </div>
+
+                {/* User Info or Auth Buttons */}
+                {isLoggedIn ? (
+                  <div className="mb-6 p-4 bg-gradient-to-br from-primary/10 to-accent/10 rounded-xl border border-primary/20">
+                    <div className="flex items-center space-x-3 mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center">
+                        <span className="text-white text-lg font-medium">
+                          {(currentUser as any)?.firstName?.charAt(0)?.toUpperCase() || (currentUser as any)?.email?.charAt(0)?.toUpperCase() || "U"}
+                        </span>
                       </div>
-                    ) : (
-                      <Link href={item.href || "/"}>
-                        <motion.div
-                          className={`block px-4 py-3 rounded-lg font-medium transition-colors duration-200 ${
-                            location === item.href
-                              ? "text-white bg-primary"
-                              : "text-gray-700 hover:text-primary hover:bg-primary/10"
-                          }`}
-                          onClick={() => setIsMobileMenuOpen(false)}
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.3, delay: index * 0.1 }}
-                        >
-                          {item.name}
-                        </motion.div>
-                      </Link>
-                    )}
-                  </div>
-                ))}
-                
-                {/* Mobile Auth Buttons */}
-                {!isLoggedIn && (
-                  <div className="mt-6 pt-4 border-t border-gray-200 space-y-3">
-                    <Link href="/cadastro">
-                      <motion.div
-                        className="block w-full text-center px-4 py-3 text-purple-600 font-semibold border-2 border-purple-300 rounded-lg hover:bg-purple-50 transition-colors"
+                      <div>
+                        <p className="font-semibold text-gray-800">
+                          {(currentUser as any)?.firstName || "Usuário"}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          {(currentUser as any)?.email}
+                        </p>
+                      </div>
+                    </div>
+                    <Link href={
+                      (currentUser as any)?.role === 'admin' ? '/admin-dashboard' :
+                      (currentUser as any)?.role === 'consultor' ? '/consultant-dashboard' :
+                      '/client-dashboard'
+                    }>
+                      <button
+                        className="w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors mb-2"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.1 }}
+                      >
+                        Meu Painel
+                      </button>
+                    </Link>
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsMobileMenuOpen(false);
+                        window.location.href = '/';
+                      }}
+                      className="w-full px-4 py-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center space-x-2"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      <span>Sair</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="mb-6 space-y-3">
+                    <Link href="/cadastro">
+                      <button
+                        className="w-full px-4 py-3 text-purple-600 font-semibold border-2 border-purple-300 rounded-lg hover:bg-purple-50 transition-colors"
+                        onClick={() => setIsMobileMenuOpen(false)}
                       >
                         CADASTRAR
-                      </motion.div>
+                      </button>
                     </Link>
                     <Link href="/login">
-                      <motion.div
-                        className="block w-full text-center px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg shadow-lg transition-all"
+                      <button
+                        className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all"
                         onClick={() => setIsMobileMenuOpen(false)}
-                        initial={{ opacity: 0, y: 20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.2 }}
                       >
                         ENTRAR
-                      </motion.div>
+                      </button>
                     </Link>
                   </div>
                 )}
-              </nav>
-            </div>
-          </motion.div>
+
+                {/* Navigation */}
+                <nav className="space-y-2">
+                  {navigation.map((item, index) => (
+                    <div key={item.name} className="space-y-1">
+                      {item.hasSubmenu ? (
+                        <div>
+                          <div className="px-4 py-3 rounded-lg font-medium text-gray-700 bg-gray-50 border border-gray-200">
+                            {item.name}
+                          </div>
+                          <div className="ml-4 space-y-1 mt-1">
+                            {item.submenu?.map((subItem) => (
+                              <Link key={subItem.name} href={subItem.href}>
+                                <div
+                                  className="block px-3 py-2 rounded-lg text-sm text-gray-600 hover:text-primary hover:bg-primary/10 transition-colors duration-200"
+                                  onClick={() => setIsMobileMenuOpen(false)}
+                                >
+                                  {subItem.name}
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      ) : (
+                        <Link href={item.href || "/"}>
+                          <div
+                            className={`block px-4 py-3 rounded-lg font-medium transition-colors duration-200 ${
+                              location === item.href
+                                ? "text-white bg-primary"
+                                : "text-gray-700 hover:text-primary hover:bg-primary/10"
+                            }`}
+                            onClick={() => setIsMobileMenuOpen(false)}
+                          >
+                            {item.name}
+                          </div>
+                        </Link>
+                      )}
+                    </div>
+                  ))}
+                </nav>
+              </div>
+            </motion.div>
+          </>
         )}
       </AnimatePresence>
     </motion.header>
