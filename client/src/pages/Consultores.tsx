@@ -1,48 +1,120 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { Link } from 'wouter';
+import { motion } from 'framer-motion';
+import { Search, Filter, Star, Phone, MessageCircle, XCircle, RefreshCcw } from 'lucide-react';
 
-export default function Consultores() {
-  const [consultants, setConsultants] = useState([]);
+interface Consultant {
+  id: string;
+  name: string;
+  title: string;
+  specialty: string;
+  description: string;
+  pricePerMinute: number;
+  rating: number;
+  reviewCount: number;
+  imageUrl: string;
+  status: 'online' | 'busy' | 'offline';
+}
+
+const getStatusColor = (status: Consultant['status']) => {
+  switch (status) {
+    case 'online': return 'bg-green-500';
+    case 'busy': return 'bg-yellow-500';
+    case 'offline': return 'bg-gray-500';
+    default: return 'bg-gray-500';
+  }
+};
+
+const getStatusText = (status: Consultant['status']) => {
+  switch (status) {
+    case 'online': return 'Online';
+    case 'busy': return 'Ocupado';
+    case 'offline': return 'Offline';
+    default: return 'Indisponível';
+  }
+};
+
+export default function ConsultoresPage() {
+  const [consultants, setConsultants] = useState<Consultant[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterSpecialty, setFilterSpecialty] = useState('all');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [userCredits, setUserCredits] = useState(null);
+  const [specialtyFilter, setSpecialtyFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [userCredits, setUserCredits] = useState<number | null>(null);
 
   useEffect(() => {
-    // Buscar consultores
-    fetch('/api/consultants?limit=50')
-      .then(res => res.json())
-      .then(data => {
-        setConsultants(Array.isArray(data) ? data : []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-
-    // Buscar créditos do usuário (se logado)
-    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
-    if (token) {
-      fetch('/api/auth/user', {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      .then(res => res.json())
-      .then(data => {
-        const user = data.user || data;
-        setUserCredits(parseFloat(user.credits) || 0);
-      })
-      .catch(() => {});
-    }
+    loadConsultants();
+    loadUserCredits();
   }, []);
 
-  const handleConsultClick = async (consultant) => {
-    // Verificar se está logado
+  const loadConsultants = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const response = await fetch('/api/consultants?limit=50', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error(`Erro ao carregar: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      const consultantsList = Array.isArray(data) 
+        ? data.map(c => ({
+            ...c,
+            pricePerMinute: parseFloat(c.pricePerMinute) || 0,
+            rating: parseFloat(c.rating) || 0,
+          }))
+        : (data.consultants || data.data || []).map((c: any) => ({
+            ...c,
+            pricePerMinute: parseFloat(c.pricePerMinute) || 0,
+            rating: parseFloat(c.rating) || 0,
+          }));
+
+      setConsultants(consultantsList);
+    } catch (err) {
+      console.error('Erro ao carregar consultores:', err);
+      setError('Não foi possível carregar os consultores. Tente novamente.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadUserCredits = async () => {
     const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (!token) return;
+
+    try {
+      const response = await fetch('/api/auth/user', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        const user = data.user || data;
+        setUserCredits(parseFloat(user.credits) || 0);
+      }
+    } catch (err) {
+      console.error('Erro ao carregar créditos:', err);
+    }
+  };
+
+  const handleConsultClick = async (consultant: Consultant) => {
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    
     if (!token) {
       alert('⚠️ Você precisa fazer login para consultar!');
       window.location.href = '/login';
       return;
     }
 
-    // Verificar créditos
     if (userCredits === null || userCredits < 5) {
       const confirmar = confirm(
         `💰 Você precisa de no mínimo R$ 5,00 em créditos para iniciar uma consulta.\n\n` +
@@ -55,18 +127,15 @@ export default function Consultores() {
       return;
     }
 
-    // Confirmar início da consulta
-    const price = parseFloat(consultant.pricePerMinute) || 0;
     const confirmar = confirm(
       `🔮 Iniciar consulta com ${consultant.name}?\n\n` +
-      `💰 Valor: R$ ${price.toFixed(2)}/minuto\n` +
+      `💰 Valor: R$ ${consultant.pricePerMinute.toFixed(2)}/minuto\n` +
       `💳 Seu saldo: R$ ${userCredits.toFixed(2)}\n\n` +
       `A cobrança será feita proporcionalmente ao tempo de consulta.`
     );
 
     if (!confirmar) return;
 
-    // Iniciar consulta
     try {
       const response = await fetch('/api/consultations/start', {
         method: 'POST',
@@ -97,341 +166,216 @@ export default function Consultores() {
     }
   };
 
-  const specialties = ['all', ...new Set(consultants.map(c => c.specialty))];
+  const filteredConsultants = consultants.filter(consultant => {
+    const matchesSearch = consultant.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         consultant.title?.toLowerCase().includes(searchTerm.toLowerCase());
 
-  const filteredConsultants = consultants.filter(c => {
-    const matchSearch = c.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                       (c.title && c.title.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchSpecialty = filterSpecialty === 'all' || c.specialty === filterSpecialty;
-    const matchStatus = filterStatus === 'all' || c.status === filterStatus;
-    return matchSearch && matchSpecialty && matchStatus;
+    const matchesSpecialty = specialtyFilter === 'all' || consultant.specialty.toLowerCase() === specialtyFilter.toLowerCase();
+    const matchesStatus = statusFilter === 'all' || consultant.status === statusFilter;
+
+    return matchesSearch && matchesSpecialty && matchesStatus;
   });
 
-  const getStatusColor = (status) => {
-    if (status === 'online') return '#10b981';
-    if (status === 'busy') return '#f59e0b';
-    return '#6b7280';
-  };
-
-  const getStatusText = (status) => {
-    if (status === 'online') return 'Online';
-    if (status === 'busy') return 'Ocupado';
-    return 'Offline';
-  };
+  const availableSpecialties = useMemo(() => {
+    const specialties = new Set(consultants.map(c => c.specialty));
+    return ['all', ...Array.from(specialties).sort()];
+  }, [consultants]);
 
   if (loading) {
     return (
-      <div style={{
-        minHeight: '100vh',
-        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{textAlign: 'center', color: 'white'}}>
-          <div style={{
-            width: '80px',
-            height: '80px',
-            border: '6px solid rgba(255,255,255,0.3)',
-            borderTop: '6px solid white',
-            borderRadius: '50%',
-            animation: 'spin 1s linear infinite',
-            margin: '0 auto 20px'
-          }}></div>
-          <p style={{fontSize: '24px', fontWeight: '600'}}>Carregando consultores...</p>
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mx-auto mb-4"></div>
+          <p className="text-purple-600 font-medium text-lg">Carregando Consultores...</p>
+          <p className="text-gray-500 text-sm">Por favor, aguarde enquanto buscamos os especialistas.</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 p-4">
+        <div className="text-center max-w-md bg-white p-8 rounded-lg shadow-xl">
+          <div className="w-20 h-20 mx-auto mb-6 bg-red-100 rounded-full flex items-center justify-center">
+            <XCircle className="w-10 h-10 text-red-600" />
+          </div>
+          <h2 className="text-3xl font-bold text-gray-900 mb-3">Erro ao Carregar Consultores</h2>
+          <p className="text-gray-700 mb-6">{error}</p>
+          <button
+            onClick={loadConsultants}
+            className="px-8 py-3 bg-red-600 text-white rounded-full font-semibold hover:bg-red-700 transition-colors inline-flex items-center gap-2 shadow-md"
+          >
+            <RefreshCcw className="w-5 h-5" />
+            Tentar Novamente
+          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-      padding: '60px 20px'
-    }}>
-      <div style={{maxWidth: '1400px', margin: '0 auto'}}>
-        {/* Header */}
-        <div style={{textAlign: 'center', marginBottom: '50px'}}>
-          <h1 style={{
-            fontSize: '56px',
-            fontWeight: '800',
-            color: 'white',
-            marginBottom: '16px',
-            textShadow: '0 4px 6px rgba(0,0,0,0.3)'
-          }}>
-            ✨ Nossos Consultores Especializados
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-12">
+      <div className="container mx-auto px-4">
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="text-center mb-12"
+        >
+          <h1 className="text-5xl font-extrabold text-purple-900 mb-4 leading-tight">
+            Nossos Consultores Especializados
           </h1>
-          <p style={{fontSize: '22px', color: 'rgba(255,255,255,0.9)', fontWeight: '500'}}>
-            {filteredConsultants.length} especialistas disponíveis
+          <p className="text-xl text-gray-700 max-w-3xl mx-auto">
+            Conecte-se com os melhores especialistas em diversas áreas esotéricas.
           </p>
+          
           {userCredits !== null && (
-            <div style={{
-              marginTop: '20px',
-              display: 'inline-block',
-              background: 'rgba(255,255,255,0.2)',
-              padding: '12px 24px',
-              borderRadius: '20px',
-              backdropFilter: 'blur(10px)'
-            }}>
-              <span style={{color: 'white', fontSize: '18px', fontWeight: '600'}}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="mt-6 inline-block bg-white/80 backdrop-blur-sm px-6 py-3 rounded-full shadow-lg"
+            >
+              <span className="text-lg font-semibold text-purple-800">
                 💰 Seu saldo: R$ {userCredits.toFixed(2)}
               </span>
               <button
                 onClick={() => window.location.href = '/comprar/creditos'}
-                style={{
-                  marginLeft: '12px',
-                  padding: '6px 16px',
-                  background: '#10b981',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  fontWeight: '600',
-                  cursor: 'pointer'
-                }}
+                className="ml-4 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-full font-semibold transition-colors"
               >
                 + Comprar Créditos
               </button>
-            </div>
+            </motion.div>
           )}
-        </div>
+        </motion.div>
 
-        {/* Filtros */}
-        <div style={{
-          background: 'white',
-          borderRadius: '16px',
-          padding: '30px',
-          boxShadow: '0 20px 25px -5px rgba(0,0,0,0.2)',
-          marginBottom: '40px'
-        }}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-            gap: '20px'
-          }}>
-            {/* Busca */}
-            <div>
-              <label style={{display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151'}}>
-                🔍 Buscar
-              </label>
-              <input
-                type="text"
-                placeholder="Nome ou especialidade..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '10px',
-                  fontSize: '16px',
-                  outline: 'none'
-                }}
-              />
-            </div>
-
-            {/* Filtro Especialidade */}
-            <div>
-              <label style={{display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151'}}>
-                🎯 Especialidade
-              </label>
-              <select
-                value={filterSpecialty}
-                onChange={(e) => setFilterSpecialty(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '10px',
-                  fontSize: '16px',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="all">Todas</option>
-                {specialties.filter(s => s !== 'all').map(s => (
-                  <option key={s} value={s}>{s}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Filtro Status */}
-            <div>
-              <label style={{display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151'}}>
-                🟢 Disponibilidade
-              </label>
-              <select
-                value={filterStatus}
-                onChange={(e) => setFilterStatus(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '12px 16px',
-                  border: '2px solid #e5e7eb',
-                  borderRadius: '10px',
-                  fontSize: '16px',
-                  outline: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                <option value="all">Todos</option>
-                <option value="online">Online</option>
-                <option value="busy">Ocupado</option>
-                <option value="offline">Offline</option>
-              </select>
-            </div>
+        {/* Search and Filter */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-white p-6 rounded-xl shadow-lg mb-12 max-w-4xl mx-auto flex flex-col md:flex-row gap-4"
+        >
+          <div className="relative flex-grow">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <input
+              type="text"
+              placeholder="Buscar consultor por nome ou título..."
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
-        </div>
-
-        {/* Grid de Consultores */}
-        {filteredConsultants.length === 0 ? (
-          <div style={{
-            background: 'white',
-            borderRadius: '16px',
-            padding: '60px',
-            textAlign: 'center'
-          }}>
-            <div style={{fontSize: '80px', marginBottom: '20px'}}>😔</div>
-            <h2 style={{fontSize: '28px', color: '#374151', marginBottom: '10px'}}>
-              Nenhum consultor encontrado
-            </h2>
+          <div className="relative">
+            <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
+            <select
+              className="w-full md:w-auto pl-10 pr-4 py-2 border border-gray-300 rounded-lg appearance-none bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+              value={specialtyFilter}
+              onChange={(e) => setSpecialtyFilter(e.target.value)}
+            >
+              {availableSpecialties.map(specialty => (
+                <option key={specialty} value={specialty}>
+                  {specialty === 'all' ? 'Todas as Especialidades' : specialty.charAt(0).toUpperCase() + specialty.slice(1)}
+                </option>
+              ))}
+            </select>
           </div>
-        ) : (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-            gap: '30px'
-          }}>
-            {filteredConsultants.map((c) => {
-              const price = parseFloat(c.pricePerMinute) || 0;
-              const rating = parseFloat(c.rating) || 0;
-              
-              return (
-                <div
-                  key={c.id}
-                  style={{
-                    background: 'white',
-                    borderRadius: '16px',
-                    overflow: 'hidden',
-                    boxShadow: '0 10px 15px -3px rgba(0,0,0,0.2)',
-                    transition: 'all 0.3s'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-8px)';
-                    e.currentTarget.style.boxShadow = '0 20px 25px -5px rgba(0,0,0,0.3)';
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)';
-                    e.currentTarget.style.boxShadow = '0 10px 15px -3px rgba(0,0,0,0.2)';
-                  }}
-                >
-                  {/* Imagem */}
-                  <div style={{position: 'relative', height: '240px'}}>
-                    <img 
-                      src={c.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(c.name)}&background=667eea&color=fff&size=400`} 
-                      alt={c.name}
-                      style={{width: '100%', height: '100%', objectFit: 'cover'}}
-                    />
-                    <div style={{
-                      position: 'absolute',
-                      top: '12px',
-                      right: '12px',
-                      padding: '8px 16px',
-                      borderRadius: '20px',
-                      background: getStatusColor(c.status),
-                      color: 'white',
-                      fontSize: '14px',
-                      fontWeight: '700',
-                      boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
-                    }}>
-                      {getStatusText(c.status)}
-                    </div>
-                  </div>
-
-                  {/* Conteúdo */}
-                  <div style={{padding: '24px'}}>
-                    <h2 style={{fontSize: '24px', fontWeight: '700', color: '#111827', marginBottom: '6px'}}>
-                      {c.name}
-                    </h2>
-                    <p style={{fontSize: '15px', color: '#6b7280', marginBottom: '16px'}}>
-                      {c.title}
-                    </p>
-
-                    {/* Rating */}
-                    <div style={{display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px'}}>
-                      <div style={{display: 'flex', gap: '2px'}}>
-                        {[...Array(5)].map((_, i) => (
-                          <span key={i} style={{fontSize: '18px', color: i < Math.floor(rating) ? '#fbbf24' : '#e5e7eb'}}>
-                            ★
-                          </span>
-                        ))}
-                      </div>
-                      <span style={{fontSize: '15px', color: '#6b7280', fontWeight: '600'}}>
-                        {rating.toFixed(1)} ({c.reviewCount || 0})
-                      </span>
-                    </div>
-
-                    {/* Descrição */}
-                    <p style={{
-                      fontSize: '14px',
-                      color: '#4b5563',
-                      lineHeight: '1.6',
-                      marginBottom: '20px',
-                      display: '-webkit-box',
-                      WebkitLineClamp: 3,
-                      WebkitBoxOrient: 'vertical',
-                      overflow: 'hidden'
-                    }}>
-                      {c.description}
-                    </p>
-
-                    {/* Footer */}
-                    <div style={{
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      paddingTop: '20px',
-                      borderTop: '2px solid #f3f4f6'
-                    }}>
-                      <div style={{
-                        fontSize: '24px',
-                        fontWeight: '800',
-                        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                        WebkitBackgroundClip: 'text',
-                        WebkitTextFillColor: 'transparent'
-                      }}>
-                        R$ {price.toFixed(2)}/min
-                      </div>
-
-                      {/* Botão Iniciar Consulta */}
-                      <button
-                        onClick={() => handleConsultClick(c)}
-                        disabled={c.status !== 'online'}
-                        style={{
-                          padding: '12px 24px',
-                          borderRadius: '12px',
-                          background: c.status === 'online' 
-                            ? 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' 
-                            : '#d1d5db',
-                          border: 'none',
-                          color: 'white',
-                          fontSize: '16px',
-                          fontWeight: '700',
-                          cursor: c.status === 'online' ? 'pointer' : 'not-allowed',
-                          transition: 'all 0.3s'
-                        }}
-                        title={c.status === 'online' ? 'Iniciar consulta' : 'Consultor indisponível'}
-                      >
-                        {c.status === 'online' ? '🔮 Consultar' : '⏸️ Indisponível'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
+          <div className="relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg">●</span>
+            <select
+              className="w-full md:w-auto pl-10 pr-4 py-2 border border-gray-300 rounded-lg appearance-none bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">Todos os Status</option>
+              <option value="online">Online</option>
+              <option value="busy">Ocupado</option>
+              <option value="offline">Offline</option>
+            </select>
           </div>
+          <button
+            onClick={() => {
+              setSearchTerm('');
+              setSpecialtyFilter('all');
+              setStatusFilter('all');
+            }}
+            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors font-medium"
+          >
+            Limpar Filtros
+          </button>
+        </motion.div>
+
+        {filteredConsultants.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center text-gray-600 text-xl mt-16"
+          >
+            Nenhum consultor encontrado com os filtros aplicados.
+          </motion.div>
         )}
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5, delay: 0.4 }}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+        >
+          {filteredConsultants.map((consultant) => (
+            <motion.div
+              key={consultant.id}
+              whileHover={{ y: -5, boxShadow: "0 10px 20px rgba(0,0,0,0.1)" }}
+              className="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col"
+            >
+              <div className="relative h-48 w-full">
+                <img
+                  src={consultant.imageUrl || `https://ui-avatars.com/api/?name=${consultant.name}&background=random&color=fff&size=128`}
+                  alt={consultant.name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${consultant.name}&background=random&color=fff&size=128`;
+                  }}
+                />
+                <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-white text-xs font-semibold flex items-center gap-1 ${getStatusColor(consultant.status)}`}>
+                  <span className="w-2 h-2 rounded-full bg-white opacity-75 animate-pulse"></span>
+                  {getStatusText(consultant.status)}
+                </div>
+              </div>
+              <div className="p-6 flex-grow flex flex-col">
+                <h2 className="text-2xl font-bold text-purple-800 mb-1">{consultant.name}</h2>
+                <h3 className="text-md font-medium text-gray-600 mb-3">{consultant.title}</h3>
+                <div className="flex items-center mb-3">
+                  <div className="flex text-yellow-400 mr-2">
+                    {Array.from({ length: 5 }).map((_, i) => (
+                      <Star key={i} size={18} fill={i < Math.floor(consultant.rating) ? "currentColor" : "none"} strokeWidth={1.5} />
+                    ))}
+                  </div>
+                  <span className="text-gray-600 text-sm">
+                    {consultant.rating.toFixed(1)} ({consultant.reviewCount} avaliações)
+                  </span>
+                </div>
+                <p className="text-gray-700 text-sm mb-4 line-clamp-3">{consultant.description}</p>
+                <div className="mt-auto flex justify-between items-center pt-4 border-t border-gray-100">
+                  <span className="text-purple-700 font-bold text-lg">
+                    R$ {consultant.pricePerMinute.toFixed(2)}/min
+                  </span>
+                  <button
+                    onClick={() => handleConsultClick(consultant)}
+                    disabled={consultant.status !== 'online'}
+                    className={`px-6 py-2 rounded-full font-semibold transition-all ${
+                      consultant.status === 'online'
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg'
+                        : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    }`}
+                  >
+                    {consultant.status === 'online' ? '🔮 Consultar' : '⏸️ Indisponível'}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          ))}
+        </motion.div>
       </div>
     </div>
   );
