@@ -1,6 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
+import "./styles/responsive.css";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 
 createRoot(document.getElementById("root")!).render(
@@ -9,24 +10,28 @@ createRoot(document.getElementById("root")!).render(
   </ThemeProvider>
 );
 
-// COMPLETELY REMOVE SERVICE WORKER - CAUSING CACHE ISSUES
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-    for(let registration of registrations) {
-      registration.unregister();
-      console.log('Service Worker removido:', registration.scope);
-    }
+// ===== PWA Service Worker Registration =====
+if ('serviceWorker' in navigator && import.meta.env.PROD) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then((registration) => {
+        console.log('✅ PWA: Service Worker registrado');
+        
+        // Check for updates
+        registration.addEventListener('updatefound', () => {
+          const newWorker = registration.installing;
+          newWorker?.addEventListener('statechange', () => {
+            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              console.log('🔄 Nova versão disponível');
+            }
+          });
+        });
+      })
+      .catch((error) => {
+        console.error('❌ Erro ao registrar Service Worker', error);
+      });
   });
 }
 
-// Clear all caches
-if ('caches' in window) {
-  caches.keys().then(function(names) {
-    for (let name of names) {
-      caches.delete(name);
-      console.log('Cache removido:', name);
-    }
-  });
-}
-
-console.log('CACHE TOTALMENTE LIMPO - ' + Date.now());
+console.log('🚀 App inicializado:', new Date().toISOString());

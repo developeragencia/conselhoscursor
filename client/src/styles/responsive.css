@@ -1,0 +1,302 @@
+/**
+ * 📱 Responsive Fixes - Mobile & Tablet
+ * Corrige alinhamento e ajustes sem quebrar desktop
+ */
+
+/* === MOBILE FIXES (< 768px) === */
+@media (max-width: 767px) {
+  /* Container mobile */
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    max-width: 100% !important;
+  }
+
+  /* Textos mobile */
+  h1 {
+    font-size: 1.875rem !important; /* 30px */
+    line-height: 1.2 !important;
+  }
+
+  h2 {
+    font-size: 1.5rem !important; /* 24px */
+    line-height: 1.3 !important;
+  }
+
+  h3 {
+    font-size: 1.25rem !important; /* 20px */
+  }
+
+  h4 {
+    font-size: 1.125rem !important; /* 18px */
+  }
+
+  /* Botões touch-friendly */
+  button,
+  a[role="button"],
+  .btn {
+    min-height: 44px !important;
+    padding: 0.75rem 1.5rem !important;
+    font-size: 1rem !important;
+  }
+
+  /* Grid mobile */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  /* Cards mobile */
+  .rounded-xl,
+  .rounded-2xl {
+    border-radius: 0.75rem !important;
+  }
+
+  /* Padding mobile */
+  .p-8 {
+    padding: 1.25rem !important;
+  }
+
+  .p-6 {
+    padding: 1rem !important;
+  }
+
+  .py-20 {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+  }
+
+  .py-16 {
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+
+  .py-12 {
+    padding-top: 2rem !important;
+    padding-bottom: 2rem !important;
+  }
+
+  /* Margin mobile */
+  .mb-12 {
+    margin-bottom: 2rem !important;
+  }
+
+  .mb-16 {
+    margin-bottom: 2.5rem !important;
+  }
+
+  /* Inputs mobile */
+  input,
+  textarea,
+  select {
+    font-size: 16px !important; /* Previne zoom iOS */
+    padding: 0.75rem !important;
+  }
+
+  /* Images mobile */
+  img {
+    max-width: 100% !important;
+    height: auto !important;
+  }
+
+  /* Flex mobile */
+  .flex {
+    flex-wrap: wrap !important;
+  }
+
+  /* Text alignment mobile */
+  .text-center-mobile {
+    text-align: center !important;
+  }
+
+  /* Hide on mobile */
+  .hidden-mobile {
+    display: none !important;
+  }
+
+  /* Show on mobile */
+  .show-mobile {
+    display: block !important;
+  }
+
+  /* Overflow fix */
+  body {
+    overflow-x: hidden !important;
+  }
+
+  /* Modal mobile */
+  [role="dialog"] {
+    margin: 1rem !important;
+    max-height: calc(100vh - 2rem) !important;
+    width: calc(100vw - 2rem) !important;
+  }
+
+  /* Navigation mobile */
+  nav {
+    padding: 0.75rem 1rem !important;
+  }
+
+  /* Hero section mobile */
+  .hero {
+    padding-top: 3rem !important;
+    padding-bottom: 3rem !important;
+  }
+
+  /* Section spacing mobile */
+  section {
+    padding-top: 2.5rem !important;
+    padding-bottom: 2.5rem !important;
+  }
+
+  /* Max width mobile */
+  .max-w-7xl,
+  .max-w-6xl,
+  .max-w-5xl {
+    max-width: 100% !important;
+  }
+
+  /* Gap mobile */
+  .gap-8 {
+    gap: 1rem !important;
+  }
+
+  .gap-6 {
+    gap: 0.75rem !important;
+  }
+
+  .gap-4 {
+    gap: 0.5rem !important;
+  }
+
+  /* Aspect ratio mobile */
+  .aspect-video {
+    aspect-ratio: 16/9 !important;
+  }
+
+  /* Space between mobile */
+  .space-x-8 > * + * {
+    margin-left: 1rem !important;
+  }
+
+  .space-y-8 > * + * {
+    margin-top: 1rem !important;
+  }
+
+  /* Border radius mobile */
+  .rounded-full {
+    border-radius: 9999px !important;
+  }
+
+  /* Shadow mobile */
+  .shadow-xl,
+  .shadow-2xl {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1) !important;
+  }
+
+  /* Z-index mobile */
+  .z-50 {
+    z-index: 50 !important;
+  }
+
+  /* Width mobile */
+  .w-full {
+    width: 100% !important;
+  }
+
+  /* Height mobile */
+  .h-screen {
+    height: 100vh !important;
+  }
+
+  /* Min height mobile */
+  .min-h-screen {
+    min-height: 100vh !important;
+  }
+}
+
+/* === TABLET (768px - 1023px) === */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  h1 {
+    font-size: 2.25rem !important;
+  }
+
+  h2 {
+    font-size: 1.875rem !important;
+  }
+}
+
+/* === SMALL MOBILE (< 375px) === */
+@media (max-width: 374px) {
+  h1 {
+    font-size: 1.5rem !important;
+  }
+
+  h2 {
+    font-size: 1.25rem !important;
+  }
+
+  button {
+    padding: 0.625rem 1.25rem !important;
+  }
+}
+
+/* === LANDSCAPE MOBILE === */
+@media (max-width: 767px) and (orientation: landscape) {
+  .py-20,
+  .py-16,
+  .py-12 {
+    padding-top: 1.5rem !important;
+    padding-bottom: 1.5rem !important;
+  }
+
+  h1 {
+    font-size: 1.5rem !important;
+  }
+}
+
+/* === SAFE AREA (iPhone X+) === */
+@supports (padding: max(0px)) {
+  body {
+    padding-left: max(0px, env(safe-area-inset-left)) !important;
+    padding-right: max(0px, env(safe-area-inset-right)) !important;
+    padding-bottom: max(0px, env(safe-area-inset-bottom)) !important;
+  }
+}
+
+/* === TOUCH DEVICES === */
+@media (hover: none) and (pointer: coarse) {
+  button:active,
+  a:active {
+    transform: scale(0.98);
+    opacity: 0.9;
+  }
+}
+
+/* === PREVENT ZOOM ON INPUT (iOS) === */
+@media (max-width: 767px) {
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="password"],
+  input[type="number"],
+  textarea,
+  select {
+    font-size: 16px !important;
+  }
+}
+
+/* === REDUCED MOTION === */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
