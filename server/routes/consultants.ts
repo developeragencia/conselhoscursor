@@ -7,13 +7,27 @@ export const createConsultantsRouter = (db: Pool | null) => {
   // GET /api/consultants - Listar todos consultores (com filtros)
   router.get('/', async (req, res) => {
     try {
-      const { specialty, status, limit = '20', offset = '0' } = req.query;
+      const { specialty, status, limit = '50', offset = '0' } = req.query;
       
       if (!db) {
         return res.status(503).json({ error: 'Banco de dados indisponível' });
       }
 
-      let query = 'SELECT * FROM consultants WHERE 1=1';
+      let query = `SELECT 
+        id,
+        name,
+        slug,
+        title,
+        specialty,
+        description,
+        price_per_minute as "pricePerMinute",
+        rating,
+        review_count as "reviewCount",
+        image_url as "imageUrl",
+        status,
+        created_at as "createdAt"
+      FROM consultants WHERE 1=1`;
+      
       const params: any[] = [];
       let paramIndex = 1;
 
@@ -34,12 +48,8 @@ export const createConsultantsRouter = (db: Pool | null) => {
 
       const result = await db.query(query, params);
       
-      res.json({
-        consultants: result.rows,
-        total: result.rowCount,
-        limit: parseInt(limit as string),
-        offset: parseInt(offset as string)
-      });
+      // Retorna array direto para compatibilidade
+      res.json(result.rows);
     } catch (error) {
       console.error('Erro ao listar consultores:', error);
       res.status(500).json({ error: 'Erro ao listar consultores' });

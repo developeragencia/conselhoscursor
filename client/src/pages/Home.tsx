@@ -12,9 +12,12 @@ import { BasicBanner } from "@/components/BasicBanner";
 import NovosServicos from "@/components/NovosServicos";
 
 const Home = () => {
-  const { data: consultants, isLoading: consultantsLoading } = useQuery({
+  const { data: consultantsData, isLoading: consultantsLoading } = useQuery({
     queryKey: ["/api/consultants/featured"],
+    retry: 2,
   });
+
+  const consultants = Array.isArray(consultantsData) ? consultantsData : [];
 
   const { data: testimonials, isLoading: testimonialsLoading } = useQuery({
     queryKey: ["/api/testimonials"],
