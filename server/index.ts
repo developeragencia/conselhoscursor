@@ -393,11 +393,6 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Catch-all handler for React Router
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../dist/public/index.html'));
-});
-
 // Initialize and start server
 const startServer = async () => {
   await initDB();
@@ -406,7 +401,7 @@ const startServer = async () => {
   wsHandler = new WebSocketHandler(server, db);
   console.log('✅ WebSocket Handler initialized');
   
-  // Register API routes after DB initialization
+  // Register API routes BEFORE catch-all
   app.use('/api/consultants', createConsultantsRouter(db));
   app.use('/api/testimonials', createTestimonialsRouter(db));
   app.use('/api/credits', createCreditsRouter(db));
@@ -428,6 +423,11 @@ const startServer = async () => {
   console.log('   - Payments: /api/payments/*');
   console.log('   - Blog: /api/blog/*');
   console.log('   - WebSocket: ws://localhost:' + PORT + '/ws');
+  
+  // Catch-all handler for React Router (MUST be last!)
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../dist/public/index.html'));
+  });
   
   if (process.env.NODE_ENV === 'production') {
     // For production deployment
