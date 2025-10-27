@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Link } from 'wouter';
-import { Star, Phone, MessageCircle, Search, RefreshCcw } from 'lucide-react';
 
 interface Consultant {
   id: string;
@@ -12,7 +10,7 @@ interface Consultant {
   rating: number;
   reviewCount: number;
   imageUrl: string;
-  status: 'online' | 'busy' | 'offline';
+  status: string;
 }
 
 export default function ConsultoresPage() {
@@ -22,54 +20,29 @@ export default function ConsultoresPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
-    loadConsultants();
+    fetch('/api/consultants?limit=50')
+      .then(res => res.json())
+      .then(data => {
+        setConsultants(Array.isArray(data) ? data : []);
+        setLoading(false);
+      })
+      .catch(err => {
+        setError(err.message);
+        setLoading(false);
+      });
   }, []);
-
-  const loadConsultants = async () => {
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const response = await fetch('/api/consultants?limit=50');
-
-      if (!response.ok) {
-        throw new Error(`Erro ${response.status}`);
-      }
-
-      const data = await response.json();
-      const list = Array.isArray(data) ? data : [];
-      
-      setConsultants(list);
-    } catch (err: any) {
-      setError(err.message || 'Erro ao carregar');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const filteredConsultants = consultants.filter(c => 
     c.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (c.title && c.title.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const getStatusColor = (status: string) => {
-    if (status === 'online') return 'bg-green-500';
-    if (status === 'busy') return 'bg-yellow-500';
-    return 'bg-gray-500';
-  };
-
-  const getStatusText = (status: string) => {
-    if (status === 'online') return 'Online';
-    if (status === 'busy') return 'Ocupado';
-    return 'Offline';
-  };
-
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-pink-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-16 w-16 border-4 border-purple-600 border-t-transparent mx-auto mb-4"></div>
-          <p className="text-purple-600 font-medium text-lg">Carregando...</p>
+      <div style={{minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(to bottom right, #faf5ff, #fce7f3)'}}>
+        <div style={{textAlign: 'center'}}>
+          <div style={{width: '64px', height: '64px', border: '4px solid #9333ea', borderTop: '4px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px'}}></div>
+          <p style={{color: '#9333ea', fontWeight: '500', fontSize: '18px'}}>Carregando...</p>
         </div>
       </div>
     );
@@ -77,15 +50,14 @@ export default function ConsultoresPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-50 p-4">
-        <div className="text-center max-w-md bg-white p-8 rounded-lg shadow-xl">
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Erro</h2>
-          <p className="text-gray-700 mb-6">{error}</p>
+      <div style={{minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'linear-gradient(to bottom right, #fef2f2, #fed7aa)', padding: '16px'}}>
+        <div style={{textAlign: 'center', maxWidth: '448px', background: 'white', padding: '32px', borderRadius: '8px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'}}>
+          <h2 style={{fontSize: '24px', fontWeight: 'bold', color: '#111827', marginBottom: '12px'}}>Erro</h2>
+          <p style={{color: '#4b5563', marginBottom: '24px'}}>{error}</p>
           <button
-            onClick={loadConsultants}
-            className="px-6 py-3 bg-red-600 text-white rounded-lg font-semibold hover:bg-red-700 transition-colors inline-flex items-center gap-2"
+            onClick={() => window.location.reload()}
+            style={{padding: '12px 24px', background: '#dc2626', color: 'white', borderRadius: '8px', fontWeight: '600', border: 'none', cursor: 'pointer'}}
           >
-            <RefreshCcw className="w-5 h-5" />
             Tentar Novamente
           </button>
         </div>
@@ -94,94 +66,87 @@ export default function ConsultoresPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-100 py-12">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-extrabold text-purple-900 mb-4">
+    <div style={{minHeight: '100vh', background: 'linear-gradient(to bottom right, #faf5ff, #fce7f3)', padding: '48px 0'}}>
+      <div style={{maxWidth: '1200px', margin: '0 auto', padding: '0 16px'}}>
+        <div style={{textAlign: 'center', marginBottom: '48px'}}>
+          <h1 style={{fontSize: '48px', fontWeight: '800', color: '#581c87', marginBottom: '16px'}}>
             Nossos Consultores
           </h1>
-          <p className="text-xl text-gray-700">
+          <p style={{fontSize: '20px', color: '#4b5563'}}>
             {consultants.length} especialistas disponíveis
           </p>
         </div>
 
-        <div className="bg-white p-4 rounded-xl shadow-lg mb-8 max-w-2xl mx-auto">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={20} />
-            <input
-              type="text"
-              placeholder="Buscar consultor..."
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
+        <div style={{background: 'white', padding: '16px', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', marginBottom: '32px', maxWidth: '672px', margin: '0 auto 32px'}}>
+          <input
+            type="text"
+            placeholder="🔍 Buscar consultor..."
+            style={{width: '100%', padding: '8px 16px', border: '1px solid #d1d5db', borderRadius: '8px', outline: 'none', fontSize: '16px'}}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
         {filteredConsultants.length === 0 && (
-          <div className="text-center text-gray-600 text-xl mt-16">
+          <div style={{textAlign: 'center', color: '#6b7280', fontSize: '20px', marginTop: '64px'}}>
             Nenhum consultor encontrado.
           </div>
         )}
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <div style={{display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '32px'}}>
           {filteredConsultants.map((consultant) => (
             <div
               key={consultant.id}
-              className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-2xl transition-shadow"
+              style={{background: 'white', borderRadius: '12px', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)', overflow: 'hidden', transition: 'box-shadow 0.3s'}}
             >
-              <div className="relative h-48 w-full">
+              <div style={{position: 'relative', height: '192px', width: '100%'}}>
                 <img
                   src={consultant.imageUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}&background=random&color=fff&size=256`}
                   alt={consultant.name}
-                  className="w-full h-full object-cover"
+                  style={{width: '100%', height: '100%', objectFit: 'cover'}}
                   onError={(e) => {
-                    const target = e.currentTarget;
-                    target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}&background=random&color=fff&size=256`;
+                    e.currentTarget.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(consultant.name)}&background=random&color=fff&size=256`;
                   }}
                 />
-                <div className={`absolute top-3 right-3 px-3 py-1 rounded-full text-white text-xs font-semibold flex items-center gap-1 ${getStatusColor(consultant.status)}`}>
-                  <span className="w-2 h-2 rounded-full bg-white opacity-75 animate-pulse"></span>
-                  {getStatusText(consultant.status)}
+                <div style={{position: 'absolute', top: '12px', right: '12px', padding: '4px 12px', borderRadius: '9999px', background: consultant.status === 'online' ? '#10b981' : consultant.status === 'busy' ? '#f59e0b' : '#6b7280', color: 'white', fontSize: '12px', fontWeight: '600'}}>
+                  {consultant.status === 'online' ? '● Online' : consultant.status === 'busy' ? '● Ocupado' : '● Offline'}
                 </div>
               </div>
               
-              <div className="p-6">
-                <h2 className="text-2xl font-bold text-purple-800 mb-1">{consultant.name}</h2>
-                <h3 className="text-md font-medium text-gray-600 mb-3">{consultant.title}</h3>
+              <div style={{padding: '24px'}}>
+                <h2 style={{fontSize: '24px', fontWeight: 'bold', color: '#7c3aed', marginBottom: '4px'}}>{consultant.name}</h2>
+                <h3 style={{fontSize: '14px', fontWeight: '500', color: '#6b7280', marginBottom: '12px'}}>{consultant.title}</h3>
                 
-                <div className="flex items-center mb-3">
-                  <div className="flex text-yellow-400 mr-2">
-                    {Array.from({ length: 5 }).map((_, i) => (
-                      <Star 
-                        key={i} 
-                        size={18} 
-                        fill={i < Math.floor(consultant.rating) ? "currentColor" : "none"} 
-                        strokeWidth={1.5} 
-                      />
-                    ))}
-                  </div>
-                  <span className="text-gray-600 text-sm">
+                <div style={{display: 'flex', alignItems: 'center', marginBottom: '12px'}}>
+                  <span style={{color: '#fbbf24', marginRight: '8px'}}>
+                    {'⭐'.repeat(Math.floor(consultant.rating))}
+                  </span>
+                  <span style={{color: '#6b7280', fontSize: '14px'}}>
                     {consultant.rating.toFixed(1)} ({consultant.reviewCount})
                   </span>
                 </div>
                 
-                <p className="text-gray-700 text-sm mb-4 line-clamp-3">
+                <p style={{color: '#4b5563', fontSize: '14px', marginBottom: '16px', display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden'}}>
                   {consultant.description}
                 </p>
                 
-                <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-                  <span className="text-purple-700 font-bold text-lg">
+                <div style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '16px', borderTop: '1px solid #f3f4f6'}}>
+                  <span style={{color: '#7c3aed', fontWeight: 'bold', fontSize: '18px'}}>
                     R$ {consultant.pricePerMinute.toFixed(2)}/min
                   </span>
-                  <div className="flex gap-2">
-                    <Link href={`/chat/${consultant.id}`}>
-                      <button className="p-2 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors">
-                        <MessageCircle size={20} />
-                      </button>
-                    </Link>
-                    <button className="p-2 bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors">
-                      <Phone size={20} />
+                  <div style={{display: 'flex', gap: '8px'}}>
+                    <button 
+                      onClick={() => window.location.href = `/chat/${consultant.id}`}
+                      style={{padding: '8px', background: '#ede9fe', color: '#7c3aed', borderRadius: '9999px', border: 'none', cursor: 'pointer'}}
+                      title="Chat"
+                    >
+                      💬
+                    </button>
+                    <button 
+                      style={{padding: '8px', background: '#ede9fe', color: '#7c3aed', borderRadius: '9999px', border: 'none', cursor: 'pointer'}}
+                      title="Ligar"
+                    >
+                      📞
                     </button>
                   </div>
                 </div>
@@ -190,6 +155,13 @@ export default function ConsultoresPage() {
           ))}
         </div>
       </div>
+      
+      <style>{`
+        @keyframes spin {
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </div>
   );
 }
