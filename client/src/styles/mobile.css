@@ -1,0 +1,289 @@
+/**
+ * 📱 Mobile Optimization CSS
+ * Ajustes específicos para telas mobile sem afetar desktop
+ */
+
+/* === MOBILE ONLY (< 768px) === */
+@media (max-width: 767px) {
+  /* Viewport otimizado */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+  }
+
+  body {
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Container mobile */
+  .container {
+    padding-left: 16px !important;
+    padding-right: 16px !important;
+  }
+
+  /* Tipografia mobile */
+  h1, .text-5xl, .text-6xl {
+    font-size: 2rem !important; /* 32px */
+    line-height: 1.2 !important;
+  }
+
+  h2, .text-4xl {
+    font-size: 1.75rem !important; /* 28px */
+    line-height: 1.3 !important;
+  }
+
+  h3, .text-3xl {
+    font-size: 1.5rem !important; /* 24px */
+  }
+
+  .text-2xl {
+    font-size: 1.25rem !important; /* 20px */
+  }
+
+  .text-xl {
+    font-size: 1.125rem !important; /* 18px */
+  }
+
+  .text-lg {
+    font-size: 1rem !important; /* 16px */
+  }
+
+  /* Espaçamento mobile */
+  .py-24 {
+    padding-top: 48px !important;
+    padding-bottom: 48px !important;
+  }
+
+  .py-20 {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+  }
+
+  .py-16 {
+    padding-top: 32px !important;
+    padding-bottom: 32px !important;
+  }
+
+  .py-12 {
+    padding-top: 24px !important;
+    padding-bottom: 24px !important;
+  }
+
+  /* Grid mobile */
+  .grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Cards mobile */
+  .rounded-2xl {
+    border-radius: 16px !important;
+  }
+
+  .p-8 {
+    padding: 20px !important;
+  }
+
+  .p-6 {
+    padding: 16px !important;
+  }
+
+  /* Botões mobile - Touch Friendly */
+  button, a[role="button"], .btn {
+    min-height: 44px !important; /* iOS guideline */
+    min-width: 44px !important;
+    padding: 12px 24px !important;
+    font-size: 16px !important;
+  }
+
+  /* Hero Section mobile */
+  [class*="hero"] {
+    padding-top: 40px !important;
+    padding-bottom: 40px !important;
+  }
+
+  /* Imagens mobile */
+  img {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Stats Cards mobile */
+  [class*="stat-card"] {
+    padding: 16px !important;
+  }
+
+  /* Modal mobile */
+  [role="dialog"], .modal {
+    margin: 16px !important;
+    max-height: calc(100vh - 32px) !important;
+    overflow-y: auto !important;
+  }
+
+  /* Input mobile */
+  input, textarea, select {
+    font-size: 16px !important; /* Previne zoom no iOS */
+    padding: 12px !important;
+  }
+
+  /* Dark Mode Toggle mobile */
+  .dark-mode-toggle {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    z-index: 9999;
+  }
+
+  /* Navigation mobile */
+  nav {
+    padding: 12px 16px !important;
+  }
+
+  /* Floating cards - Desabilitar 3D em mobile */
+  .floating-card {
+    transform: none !important;
+  }
+
+  /* Animações suaves em mobile */
+  * {
+    transition-duration: 200ms !important;
+  }
+
+  /* Scroll snap mobile */
+  .scroll-snap {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Safe area para iPhone X+ */
+  @supports (padding: max(0px)) {
+    body {
+      padding-left: max(0px, env(safe-area-inset-left));
+      padding-right: max(0px, env(safe-area-inset-right));
+      padding-bottom: max(0px, env(safe-area-inset-bottom));
+    }
+  }
+
+  /* Sticky header mobile */
+  header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+
+  /* Bottom navigation mobile */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 12px;
+    background: white;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+  }
+
+  /* Hide desktop-only elements */
+  .desktop-only {
+    display: none !important;
+  }
+
+  /* Show mobile-only elements */
+  .mobile-only {
+    display: block !important;
+  }
+}
+
+/* === TABLET (768px - 1023px) === */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  h1, .text-5xl, .text-6xl {
+    font-size: 2.5rem !important;
+  }
+}
+
+/* === DESKTOP (> 1024px) === */
+@media (min-width: 1024px) {
+  .mobile-only {
+    display: none !important;
+  }
+
+  .desktop-only {
+    display: block !important;
+  }
+}
+
+/* === PWA SPECIFIC === */
+@media all and (display-mode: standalone) {
+  /* Esconder elementos desnecessários no PWA */
+  .pwa-hide {
+    display: none !important;
+  }
+
+  /* Ajustar para barra de status */
+  body {
+    padding-top: env(safe-area-inset-top);
+  }
+
+  /* Status bar color */
+  meta[name="theme-color"] {
+    content: #9333ea;
+  }
+}
+
+/* === LANDSCAPE MOBILE === */
+@media (max-width: 767px) and (orientation: landscape) {
+  .py-24 {
+    padding-top: 24px !important;
+    padding-bottom: 24px !important;
+  }
+
+  h1, .text-5xl, .text-6xl {
+    font-size: 1.75rem !important;
+  }
+}
+
+/* === HIGH DPI (Retina) === */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  img {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
+
+/* === DARK MODE MOBILE === */
+@media (max-width: 767px) and (prefers-color-scheme: dark) {
+  body {
+    background-color: #0a0a0a;
+  }
+}
+
+/* === ACCESSIBILITY === */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === TOUCH IMPROVEMENTS === */
+@media (hover: none) and (pointer: coarse) {
+  /* Touch devices */
+  button:active, a:active {
+    transform: scale(0.98);
+    opacity: 0.8;
+  }
+
+  /* Remover hover states */
+  *:hover {
+    transition: none !important;
+  }
+}
+
