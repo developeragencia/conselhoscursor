@@ -13,35 +13,51 @@ export default function ConsultantDashboard() {
   });
 
   useEffect(() => {
+    console.log('🔍 ConsultantDashboard - Iniciando...');
+    
     // Buscar dados do usuário
     const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    console.log('🔑 Token encontrado:', token ? 'SIM' : 'NÃO');
+    
     if (!token) {
+      console.log('❌ Sem token - redirecionando para login');
       window.location.href = '/login';
       return;
     }
 
+    console.log('📡 Buscando dados do usuário...');
     fetch('/api/auth/user', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
-    .then(res => res.json())
+    .then(res => {
+      console.log('📥 Resposta da API:', res.status);
+      return res.json();
+    })
     .then(data => {
+      console.log('✅ Dados do usuário recebidos:', data);
       setUser(data.user || data);
       setLoading(false);
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error('❌ Erro ao buscar usuário:', err);
       localStorage.removeItem('token');
+      localStorage.removeItem('authToken');
       window.location.href = '/login';
     });
 
     // Buscar estatísticas
+    console.log('📊 Buscando estatísticas...');
     fetch('/api/consultations/stats', {
       headers: { 'Authorization': `Bearer ${token}` }
     })
     .then(res => res.json())
     .then(data => {
+      console.log('✅ Estatísticas recebidas:', data);
       if (data) setStats(data);
     })
-    .catch(() => {});
+    .catch((err) => {
+      console.log('⚠️ Erro ao buscar estatísticas (não crítico):', err);
+    });
   }, []);
 
   const handleLogout = () => {
