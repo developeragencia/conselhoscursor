@@ -65,7 +65,7 @@ const ServicosReiki = lazy(() => import("@/pages/ServicosReiki"));
 
 const ServicosCristaloterapia = lazy(() => import("@/pages/ServicosCristaloterapia"));
 const ConsultoresTarot = lazy(() => import("@/pages/ConsultoresTarot"));
-const ConsultoresPage = lazy(() => import("@/pages/ConsultoresClean"));
+const ConsultoresPage = lazy(() => import("@/pages/Consultores"));
 const ComoSerConsultor = lazy(() => import("@/pages/ComoSerConsultor"));
 const NotFoundPage = lazy(() => import("@/pages/NotFound"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
