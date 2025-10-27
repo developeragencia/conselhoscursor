@@ -23,6 +23,47 @@ const authenticate = (req: any, res: any, next: any) => {
 export const createConsultationsRouter = (db: Pool | null) => {
   const router = Router();
 
+  // GET /api/consultations/stats - Estatísticas do consultor
+  router.get('/stats', authenticate, async (req: any, res) => {
+    try {
+      const user_id = req.user.userId;
+
+      if (!db) {
+        return res.status(503).json({ error: 'Banco de dados indisponível' });
+      }
+
+      // Buscar estatísticas do consultor
+      const statsResult = await db.query(`
+        SELECT 
+          COUNT(*) as total_consultations,
+          COALESCE(SUM(total_charged), 0) as total_earnings,
+          COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '30 days') as monthly_consultations,
+          COALESCE(SUM(total_charged) FILTER (WHERE created_at >= NOW() - INTERVAL '30 days'), 0) as monthly_earnings
+        FROM consultations
+        WHERE consultant_id IN (
+          SELECT id FROM consultants WHERE id = $1
+        )
+        AND status = 'ended'
+      `, [user_id]);
+
+      const stats = statsResult.rows[0] || {};
+
+      // Buscar avaliação média (pode ser implementado depois)
+      const rating = 4.8; // Mock por enquanto
+      const reviews = 0;
+
+      res.json({
+        earnings: parseFloat(stats.monthly_earnings) || 0,
+        consultations: parseInt(stats.monthly_consultations) || 0,
+        rating: rating,
+        reviews: reviews
+      });
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas:', error);
+      res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+    }
+  });
+
   // POST /api/consultations/start - Iniciar consulta
   router.post('/start', authenticate, async (req: any, res) => {
     try {
