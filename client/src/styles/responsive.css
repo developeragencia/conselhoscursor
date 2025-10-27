@@ -5,6 +5,18 @@
 
 /* === MOBILE FIXES (< 768px) === */
 @media (max-width: 767px) {
+  /* FIX HEADER SOBREPONDO CONTEÚDO */
+  header {
+    position: relative !important;
+    top: auto !important;
+  }
+
+  /* Banner não fica atrás do header */
+  main {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+  }
+
   /* Container mobile */
   .container {
     padding-left: 1rem !important;

@@ -75,7 +75,7 @@ export const Header: React.FC = () => {
 
   return (
     <motion.header
-      className="sticky top-0 z-50 bg-white shadow-2xl border-b border-gray-100"
+      className="relative md:sticky top-0 z-50 bg-white shadow-md border-b border-gray-100"
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5 }}
