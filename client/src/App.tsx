@@ -122,7 +122,7 @@ function Router() {
           {() => (
             <MainLayout>
               <Switch>
-                <Route path="/" component={Home} />
+                <Route path="/" component={HomeModern} />
                 <Route path="/quem-somos" component={QuemSomos} />
                 <Route path="/consultores" component={ConsultoresPage} />
                 <Route path="/test-consultores" component={TestConsultoresPage} />
