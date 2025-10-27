@@ -29,7 +29,22 @@ const app = express();
 const server = createServer(app);
 const PORT = parseInt(process.env.PORT || '5000', 10);
 const JWT_SECRET = process.env.JWT_SECRET || 'conselhos_secret_2025';
-const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '').split(',').map(s => s.trim()).filter(Boolean);
+
+// CORS Origins - Adiciona origens padrão para desenvolvimento e produção
+const baseOrigins = [
+  'https://conselhosesotericos.com.br',
+  'https://www.conselhosesotericos.com.br',
+  'https://conselhos-esotericos.onrender.com',
+  'http://localhost:5000',
+  'http://localhost:5173'
+];
+
+const envOrigins = (process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map(s => s.trim())
+  .filter(Boolean);
+
+const ALLOWED_ORIGINS = [...new Set([...baseOrigins, ...envOrigins])];
 
 // Database
 let db: Pool | null = null;
@@ -143,9 +158,38 @@ app.use(express.urlencoded({ extended: true }));
 // CORS
 app.use(cors({
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
-    if (!origin || ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin)) {
+    // Sempre permite requisições sem origin (como Postman, curl, etc)
+    if (!origin) {
       return callback(null, true);
     }
+    
+    // Verifica se a origem está na lista de permitidas
+    if (ALLOWED_ORIGINS.includes(origin)) {
+      return callback(null, true);
+    }
+    
+    // Verifica se é um subdomínio dos domínios principais
+    const allowedDomains = [
+      'conselhosesotericos.com.br',
+      'conselhos-esotericos.onrender.com',
+      'localhost'
+    ];
+    
+    const isAllowedDomain = allowedDomains.some(domain => {
+      try {
+        const url = new URL(origin);
+        return url.hostname === domain || url.hostname.endsWith(`.${domain}`);
+      } catch {
+        return false;
+      }
+    });
+    
+    if (isAllowedDomain) {
+      return callback(null, true);
+    }
+    
+    // Log para debug
+    console.warn(`❌ CORS blocked origin: ${origin}`);
     return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,

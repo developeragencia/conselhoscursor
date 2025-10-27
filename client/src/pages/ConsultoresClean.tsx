@@ -42,12 +42,18 @@ export default function ConsultoresClean() {
   const [statusFilter, setStatusFilter] = useState('all');
   const [priceFilter, setPriceFilter] = useState('all');
 
-  const { data: consultants = [], isLoading, error } = useQuery({
-    queryKey: ['/api/consultants/featured'],
-    retry: false,
-    staleTime: 30000,
+  const { data: consultantsData, isLoading, error } = useQuery({
+    queryKey: ['/api/consultants', { limit: 50 }],
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 60000,
     refetchOnWindowFocus: false,
   });
+
+  // Extrai os consultores do data (pode ser array direto ou objeto com array)
+  const consultants = Array.isArray(consultantsData) 
+    ? consultantsData 
+    : (consultantsData?.consultants || consultantsData?.data || []);
 
   // Tratamento global de erros
   React.useEffect(() => {
@@ -72,13 +78,22 @@ export default function ConsultoresClean() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="text-center max-w-md">
           <div className="w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full flex items-center justify-center">
             <Shield className="w-8 h-8 text-red-600" />
           </div>
           <h2 className="text-2xl font-bold text-gray-900 mb-2">Erro ao carregar consultores</h2>
-          <p className="text-gray-600">Tente recarregar a página</p>
+          <p className="text-gray-600 mb-6">Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.</p>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors inline-flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+            </svg>
+            Recarregar Página
+          </button>
         </div>
       </div>
     );
