@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test API</title>
+</head>
+<body>
+    <h1>Teste API Consultores</h1>
+    <button onclick="testAPI()">Testar API</button>
+    <pre id="result"></pre>
+
+    <script>
+    async function testAPI() {
+        const result = document.getElementById('result');
+        result.textContent = 'Carregando...';
+        
+        try {
+            const response = await fetch('/api/consultants?limit=50');
+            result.textContent = `Status: ${response.status}\n\n`;
+            
+            const data = await response.json();
+            result.textContent += JSON.stringify(data, null, 2);
+        } catch (error) {
+            result.textContent = 'Erro: ' + error.message;
+        }
+    }
+    </script>
+</body>
+</html>
+
