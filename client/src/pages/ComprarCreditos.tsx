@@ -1,353 +1,346 @@
-import React, { useState } from "react";
-import { motion } from "framer-motion";
-import { Coins, Zap, Gift, Check, Star, CreditCard, Shield, CheckCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { useMutation, useQuery } from "@tanstack/react-query";
-
-interface CreditPackage {
-  id: number;
-  amount: number;
-  price: number;
-  originalPrice: number;
-  bonus: number;
-  economy: string;
-  features: string[];
-  popular: boolean;
-  color: string;
-}
+import { useState, useEffect } from 'react';
 
 export default function ComprarCreditos() {
-  const [selectedPackage, setSelectedPackage] = useState<number | null>(null);
-  const { user, isAuthenticated } = useAuth();
-  const { toast } = useToast();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
 
-  // Buscar dados reais de pacotes de crédito do banco
-  const { data: creditPackages = [], isLoading } = useQuery({
-    queryKey: ['/api/credit-packages'],
-    enabled: true
-  });
-
-  // Mutation para processar compra
-  const purchaseMutation = useMutation({
-    mutationFn: async (packageId: number) => {
-      const response = await apiRequest("POST", "/api/purchase/credits", { packageId });
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Compra realizada com sucesso!",
-        description: `${data.creditsAdded} créditos adicionados à sua conta.`,
-      });
-    },
-    onError: () => {
-      toast({
-        title: "Erro na compra",
-        description: "Não foi possível processar sua compra. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Pacotes padrão caso não haja dados no banco
-  const defaultPackages: CreditPackage[] = [
-    {
-      id: 1,
-      amount: 50,
-      price: 45,
-      originalPrice: 50,
-      bonus: 0,
-      economy: "10%",
-      features: [
-        "50 créditos",
-        "Válido por 60 dias",
-        "Use em qualquer consultor",
-        "Suporte 24h"
-      ],
-      popular: false,
-      color: "from-indigo-600 to-indigo-700"
-    },
-    {
-      id: 2,
-      amount: 100,
-      price: 85,
-      originalPrice: 100,
-      bonus: 10,
-      economy: "15%",
-      features: [
-        "100 créditos + 10 bônus",
-        "Válido por 90 dias",
-        "Use em qualquer consultor",
-        "Desconto em consultas premium",
-        "Suporte prioritário"
-      ],
-      popular: true,
-      color: "from-purple-600 to-purple-700"
-    },
-    {
-      id: 3,
-      amount: 250,
-      price: 199,
-      originalPrice: 250,
-      bonus: 50,
-      economy: "20%",
-      features: [
-        "250 créditos + 50 bônus",
-        "Válido por 120 dias",
-        "Use em qualquer consultor",
-        "Acesso a consultores VIP",
-        "Transferível para amigos",
-        "Suporte VIP 24h"
-      ],
-      popular: false,
-      color: "from-violet-600 to-violet-700"
-    },
-    {
-      id: 4,
-      amount: 500,
-      price: 379,
-      originalPrice: 500,
-      bonus: 150,
-      economy: "25%",
-      features: [
-        "500 créditos + 150 bônus",
-        "Válido por 180 dias",
-        "Acesso ilimitado",
-        "Consultores VIP exclusivos",
-        "Relatórios personalizados",
-        "Gerente de conta dedicado"
-      ],
-      popular: false,
-      color: "from-indigo-700 to-purple-700"
-    }
-  ];
-
-  const packagesToShow = creditPackages.length > 0 ? creditPackages : defaultPackages;
-
-  const handlePurchase = async (packageData: CreditPackage) => {
-    if (!isAuthenticated) {
-      toast({
-        title: "Login necessário",
-        description: "Faça login para comprar créditos.",
-        variant: "destructive",
-      });
+  useEffect(() => {
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (!token) {
+      window.location.href = '/login';
       return;
     }
 
-    setSelectedPackage(packageData.id);
-    await purchaseMutation.mutateAsync(packageData.id);
-    setSelectedPackage(null);
+    fetch('/api/auth/user', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    })
+    .then(res => res.json())
+    .then(data => {
+      setUser(data.user || data);
+      setLoading(false);
+    })
+    .catch(() => {
+      window.location.href = '/login';
+    });
+  }, []);
+
+  const packages = [
+    {
+      id: 1,
+      name: 'Básico',
+      credits: 10,
+      price: 10,
+      description: 'Perfeito para começar',
+      features: ['10 créditos', 'Válido por 30 dias', 'Suporte básico']
+    },
+    {
+      id: 2,
+      name: 'Popular',
+      credits: 50,
+      price: 45,
+      description: 'Mais vendido',
+      features: ['50 créditos', '10% de desconto', 'Válido por 60 dias', 'Suporte prioritário'],
+      badge: 'MAIS VENDIDO',
+      highlight: true
+    },
+    {
+      id: 3,
+      name: 'Premium',
+      credits: 100,
+      price: 85,
+      description: 'Melhor custo-benefício',
+      features: ['100 créditos', '15% de desconto', 'Válido por 90 dias', 'Suporte VIP']
+    },
+    {
+      id: 4,
+      name: 'VIP',
+      credits: 250,
+      price: 200,
+      description: 'Máximo valor',
+      features: ['250 créditos', '20% de desconto', 'Válido por 180 dias', 'Suporte VIP 24h', 'Bônus exclusivos']
+    }
+  ];
+
+  const handlePurchase = async (pkg) => {
+    const token = localStorage.getItem('token') || localStorage.getItem('authToken');
+    if (!token) {
+      alert('Você precisa estar logado!');
+      window.location.href = '/login';
+      return;
+    }
+
+    const confirmar = confirm(
+      `💰 Comprar Pacote ${pkg.name}?\n\n` +
+      `Créditos: R$ ${pkg.credits.toFixed(2)}\n` +
+      `Valor: R$ ${pkg.price.toFixed(2)}\n\n` +
+      `Os créditos serão adicionados imediatamente à sua conta.`
+    );
+
+    if (!confirmar) return;
+
+    setProcessing(true);
+
+    try {
+      // Simulação de compra (em produção, integrar com Stripe)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Adicionar créditos
+      const response = await fetch('/api/credits/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          amount: pkg.credits,
+          reference: `package_${pkg.id}`
+        })
+      });
+
+      if (response.ok) {
+        alert(`✅ Compra realizada com sucesso!\n\nR$ ${pkg.credits.toFixed(2)} foram adicionados à sua conta.`);
+        
+        // Atualizar user
+        const userResponse = await fetch('/api/auth/user', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const userData = await userResponse.json();
+        setUser(userData.user || userData);
+      } else {
+        const error = await response.json();
+        alert(`❌ Erro: ${error.error || 'Falha ao processar compra'}`);
+      }
+    } catch (err) {
+      alert('❌ Erro ao processar compra. Tente novamente.');
+      console.error(err);
+    } finally {
+      setProcessing(false);
+    }
   };
 
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin w-8 h-8 border-4 border-primary border-t-transparent rounded-full"></div>
+      <div style={{
+        minHeight: '100vh',
+        background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center'
+      }}>
+        <div style={{textAlign: 'center', color: 'white'}}>
+          <div style={{
+            width: '60px',
+            height: '60px',
+            border: '4px solid rgba(255,255,255,0.3)',
+            borderTop: '4px solid white',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            margin: '0 auto 20px'
+          }}></div>
+          <p style={{fontSize: '18px'}}>Carregando...</p>
+          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        </div>
       </div>
     );
   }
 
+  const currentCredits = parseFloat(user?.credits) || 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-indigo-50 to-purple-50">
-      {/* Header */}
-      <section className="py-20 text-center bg-gradient-to-r from-indigo-900 via-purple-900 to-indigo-900 text-white">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="container mx-auto px-4"
-        >
-          <div className="flex items-center justify-center mb-6">
-            <Coins className="w-16 h-16 text-amber-400 mr-4" />
-            <h1 className="text-4xl md:text-5xl font-bold">
-              Comprar Créditos
-            </h1>
-          </div>
-          <p className="text-xl text-indigo-100 max-w-3xl mx-auto">
-            Adquira créditos para consultas com nossos especialistas certificados. 
-            Investimento em autoconhecimento e orientação espiritual.
+    <div style={{minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)', padding: '60px 20px'}}>
+      <div style={{maxWidth: '1400px', margin: '0 auto'}}>
+        {/* Header */}
+        <div style={{textAlign: 'center', marginBottom: '50px'}}>
+          <h1 style={{
+            fontSize: '56px',
+            fontWeight: '800',
+            color: 'white',
+            marginBottom: '16px',
+            textShadow: '0 4px 6px rgba(0,0,0,0.3)'
+          }}>
+            💰 Comprar Créditos
+          </h1>
+          <p style={{fontSize: '22px', color: 'rgba(255,255,255,0.9)', marginBottom: '20px'}}>
+            Escolha o melhor pacote para você
           </p>
-        </motion.div>
-      </section>
-
-      {/* Credit Packages */}
-      <section className="py-16">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-            {packagesToShow.map((pkg, index) => (
-              <motion.div
-                key={pkg.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="relative"
-              >
-                {pkg.popular && (
-                  <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
-                    <Badge className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-1">
-                      <Star className="w-4 h-4 mr-1" />
-                      MAIS POPULAR
-                    </Badge>
-                  </div>
-                )}
-
-                <Card className={`h-full ${pkg.popular ? 'ring-2 ring-amber-400 scale-105 shadow-2xl' : 'shadow-lg'} hover:shadow-xl transition-all duration-300 bg-white`}>
-                  <CardHeader className={`bg-gradient-to-br ${pkg.color} text-white rounded-t-lg relative overflow-hidden`}>
-                    <div className="absolute inset-0 bg-black/10"></div>
-                    <div className="relative z-10">
-                      <CardTitle className="text-2xl font-bold text-center">
-                        {pkg.amount} Créditos
-                        {pkg.bonus > 0 && (
-                          <span className="block text-lg font-medium opacity-95">
-                            + {pkg.bonus} bônus
-                          </span>
-                        )}
-                      </CardTitle>
-                      <CardDescription className="text-center text-white/95 mt-3">
-                        <div className="text-3xl font-bold">
-                          R$ {pkg.price}
-                        </div>
-                        {pkg.originalPrice > pkg.price && (
-                          <div className="text-sm mt-1">
-                            <span className="line-through opacity-80">R$ {pkg.originalPrice}</span>
-                            <Badge variant="secondary" className="ml-2 bg-amber-400 text-amber-900 font-medium">
-                              Economize {pkg.economy}
-                            </Badge>
-                          </div>
-                        )}
-                      </CardDescription>
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="p-6">
-                    <ul className="space-y-3 mb-6">
-                      {pkg.features.map((feature, featureIndex) => (
-                        <li key={featureIndex} className="flex items-center text-sm">
-                          <Check className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
-                          {feature}
-                        </li>
-                      ))}
-                    </ul>
-
-                    <Button
-                      onClick={() => handlePurchase(pkg)}
-                      disabled={purchaseMutation.isPending && selectedPackage === pkg.id}
-                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-300"
-                    >
-                      {purchaseMutation.isPending && selectedPackage === pkg.id ? (
-                        <div className="flex items-center justify-center">
-                          <div className="animate-spin w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></div>
-                          Processando...
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center">
-                          <CreditCard className="w-4 h-4 mr-2" />
-                          Comprar Agora
-                        </div>
-                      )}
-                    </Button>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+          <div style={{
+            display: 'inline-block',
+            background: 'rgba(255,255,255,0.2)',
+            padding: '16px 32px',
+            borderRadius: '20px',
+            backdropFilter: 'blur(10px)'
+          }}>
+            <span style={{color: 'white', fontSize: '20px', fontWeight: '600'}}>
+              💳 Seu saldo atual: R$ {currentCredits.toFixed(2)}
+            </span>
           </div>
         </div>
-      </section>
 
-      {/* Benefits Section */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 to-indigo-50">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              Por que escolher nossos créditos?
-            </h2>
-            <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-              Sistema seguro e confiável para suas consultas espirituais
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {[
-              {
-                icon: Shield,
-                title: "Segurança Total",
-                description: "Transações protegidas e dados criptografados para sua tranquilidade",
-                color: "from-emerald-500 to-emerald-600"
-              },
-              {
-                icon: Zap,
-                title: "Ativação Instantânea",
-                description: "Créditos disponíveis imediatamente após confirmação do pagamento",
-                color: "from-blue-500 to-blue-600"
-              },
-              {
-                icon: Gift,
-                title: "Bônus Exclusivos",
-                description: "Créditos extras em pacotes maiores e promoções especiais",
-                color: "from-amber-500 to-amber-600"
-              }
-            ].map((benefit, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.2 }}
-                className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-xl transition-all duration-300"
-              >
-                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-r ${benefit.color} flex items-center justify-center mx-auto mb-6`}>
-                  <benefit.icon className="w-8 h-8 text-white" />
+        {/* Pacotes */}
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: '30px',
+          marginBottom: '60px'
+        }}>
+          {packages.map((pkg) => (
+            <div
+              key={pkg.id}
+              style={{
+                background: 'white',
+                borderRadius: '20px',
+                overflow: 'hidden',
+                boxShadow: pkg.highlight ? '0 20px 40px rgba(0,0,0,0.3)' : '0 10px 20px rgba(0,0,0,0.2)',
+                transform: pkg.highlight ? 'scale(1.05)' : 'scale(1)',
+                border: pkg.highlight ? '4px solid #fbbf24' : 'none',
+                position: 'relative',
+                transition: 'all 0.3s'
+              }}
+              onMouseOver={(e) => {
+                e.currentTarget.style.transform = pkg.highlight ? 'scale(1.08)' : 'scale(1.03)';
+              }}
+              onMouseOut={(e) => {
+                e.currentTarget.style.transform = pkg.highlight ? 'scale(1.05)' : 'scale(1)';
+              }}
+            >
+              {/* Badge */}
+              {pkg.badge && (
+                <div style={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '-35px',
+                  background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
+                  color: 'white',
+                  padding: '8px 40px',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  transform: 'rotate(45deg)',
+                  boxShadow: '0 4px 6px rgba(0,0,0,0.2)'
+                }}>
+                  {pkg.badge}
                 </div>
-                <h3 className="text-xl font-bold text-gray-900 mb-3 text-center">
-                  {benefit.title}
-                </h3>
-                <p className="text-gray-600 text-center leading-relaxed">
-                  {benefit.description}
+              )}
+
+              {/* Header do Pacote */}
+              <div style={{
+                background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                padding: '40px 30px',
+                textAlign: 'center'
+              }}>
+                <h2 style={{
+                  fontSize: '32px',
+                  fontWeight: '800',
+                  color: 'white',
+                  marginBottom: '10px'
+                }}>
+                  {pkg.name}
+                </h2>
+                <p style={{
+                  fontSize: '16px',
+                  color: 'rgba(255,255,255,0.9)',
+                  marginBottom: '20px'
+                }}>
+                  {pkg.description}
                 </p>
-              </motion.div>
-            ))}
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.8 }}
-            className="text-center mt-16"
-          >
-            <div className="bg-gradient-to-r from-indigo-900 to-purple-900 rounded-2xl p-8 text-white">
-              <h3 className="text-2xl font-bold mb-4">
-                Comece sua jornada espiritual hoje mesmo
-              </h3>
-              <p className="text-indigo-100 mb-6 max-w-2xl mx-auto">
-                Milhares de pessoas já transformaram suas vidas com orientações precisas. 
-                Seja o próximo a descobrir seu verdadeiro caminho.
-              </p>
-              <div className="flex items-center justify-center gap-8 text-sm">
-                <div className="flex items-center">
-                  <Star className="w-5 h-5 text-amber-400 mr-2" />
-                  <span>4.9/5 Avaliação</span>
+                <div style={{
+                  fontSize: '48px',
+                  fontWeight: '800',
+                  color: 'white',
+                  marginBottom: '5px'
+                }}>
+                  R$ {pkg.price}
                 </div>
-                <div className="flex items-center">
-                  <CheckCircle className="w-5 h-5 text-indigo-300 mr-2" />
-                  <span>+10.000 Consultas</span>
-                </div>
-                <div className="flex items-center">
-                  <Shield className="w-5 h-5 text-emerald-400 mr-2" />
-                  <span>100% Seguro</span>
+                <div style={{
+                  fontSize: '18px',
+                  color: 'rgba(255,255,255,0.8)'
+                }}>
+                  {pkg.credits} créditos
                 </div>
               </div>
+
+              {/* Conteúdo */}
+              <div style={{padding: '30px'}}>
+                <ul style={{listStyle: 'none', padding: 0, marginBottom: '30px'}}>
+                  {pkg.features.map((feature, i) => (
+                    <li key={i} style={{
+                      padding: '12px 0',
+                      borderBottom: i < pkg.features.length - 1 ? '1px solid #e5e7eb' : 'none',
+                      display: 'flex',
+                      alignItems: 'center',
+                      fontSize: '15px',
+                      color: '#374151'
+                    }}>
+                      <span style={{color: '#10b981', marginRight: '10px', fontSize: '20px'}}>✓</span>
+                      {feature}
+                    </li>
+                  ))}
+                </ul>
+
+                <button
+                  onClick={() => handlePurchase(pkg)}
+                  disabled={processing}
+                  style={{
+                    width: '100%',
+                    padding: '16px',
+                    background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '12px',
+                    fontSize: '18px',
+                    fontWeight: '700',
+                    cursor: processing ? 'not-allowed' : 'pointer',
+                    opacity: processing ? 0.7 : 1,
+                    transition: 'all 0.3s'
+                  }}
+                >
+                  {processing ? '⏳ Processando...' : '🛒 Comprar Agora'}
+                </button>
+              </div>
             </div>
-          </motion.div>
+          ))}
         </div>
-      </section>
+
+        {/* Benefícios */}
+        <div style={{
+          background: 'white',
+          borderRadius: '20px',
+          padding: '40px',
+          boxShadow: '0 10px 20px rgba(0,0,0,0.2)'
+        }}>
+          <h2 style={{
+            fontSize: '32px',
+            fontWeight: '800',
+            textAlign: 'center',
+            marginBottom: '40px',
+            color: '#111827'
+          }}>
+            Por que comprar créditos?
+          </h2>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+            gap: '30px'
+          }}>
+            {[
+              { icon: '🔒', title: 'Segurança Total', desc: 'Pagamentos protegidos e criptografados' },
+              { icon: '⚡', title: 'Ativação Instantânea', desc: 'Créditos disponíveis imediatamente' },
+              { icon: '💎', title: 'Melhor Preço', desc: 'Descontos progressivos em pacotes maiores' },
+              { icon: '🎁', title: 'Bônus Exclusivos', desc: 'Créditos extras nos pacotes premium' }
+            ].map((benefit, i) => (
+              <div key={i} style={{textAlign: 'center'}}>
+                <div style={{fontSize: '48px', marginBottom: '15px'}}>{benefit.icon}</div>
+                <h3 style={{fontSize: '20px', fontWeight: '700', color: '#111827', marginBottom: '10px'}}>
+                  {benefit.title}
+                </h3>
+                <p style={{fontSize: '15px', color: '#6b7280', lineHeight: '1.6'}}>
+                  {benefit.desc}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
