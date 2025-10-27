@@ -7,7 +7,7 @@ import { Link } from "wouter";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
 
 export default function Cart() {
-  const { cartItems, updateQuantity, removeFromCart, getTotalPrice, getTotalItems } = useCart();
+  const { items: cartItems, updateQuantity, removeItem: removeFromCart, getTotalPrice, getTotalItems } = useCart();
   
   const handleQuantityChange = (id: string, newQuantity: number) => {
     if (newQuantity < 1) return;
