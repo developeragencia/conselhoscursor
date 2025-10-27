@@ -259,10 +259,10 @@ export default function ConsultantDashboard() {
               marginBottom: '24px'
             }}>
               {[
-                { title: 'Ganhos do Mês', value: `R$ ${stats.earnings.toFixed(2)}`, icon: '💰', color: '#10b981' },
-                { title: 'Consultas', value: stats.consultations, icon: '💬', color: '#3b82f6' },
-                { title: 'Avaliação', value: `${stats.rating.toFixed(1)} ⭐`, icon: '⭐', color: '#f59e0b' },
-                { title: 'Avaliações', value: stats.reviews, icon: '📝', color: '#8b5cf6' }
+                { title: 'Ganhos do Mês', value: `R$ ${(stats?.earnings || 0).toFixed(2)}`, icon: '💰', color: '#10b981' },
+                { title: 'Consultas', value: stats?.consultations || 0, icon: '💬', color: '#3b82f6' },
+                { title: 'Avaliação', value: `${(stats?.rating || 0).toFixed(1)} ⭐`, icon: '⭐', color: '#f59e0b' },
+                { title: 'Avaliações', value: stats?.reviews || 0, icon: '📝', color: '#8b5cf6' }
               ].map((stat, i) => (
                 <div key={i} style={{
                   background: 'white',
@@ -334,7 +334,7 @@ export default function ConsultantDashboard() {
             </h2>
             <div style={{marginBottom: '30px'}}>
               <p style={{fontSize: '36px', fontWeight: '800', color: '#10b981'}}>
-                R$ {stats.earnings.toFixed(2)}
+                R$ {(stats?.earnings || 0).toFixed(2)}
               </p>
               <p style={{fontSize: '14px', color: '#6b7280'}}>Total do mês atual</p>
             </div>
