@@ -66,6 +66,7 @@ const ServicosReiki = lazy(() => import("@/pages/ServicosReiki"));
 const ServicosCristaloterapia = lazy(() => import("@/pages/ServicosCristaloterapia"));
 const ConsultoresTarot = lazy(() => import("@/pages/ConsultoresTarot"));
 const ConsultoresPage = lazy(() => import("@/pages/Consultores"));
+const TestConsultoresPage = lazy(() => import("@/pages/TestConsultores"));
 const ComoSerConsultor = lazy(() => import("@/pages/ComoSerConsultor"));
 const NotFoundPage = lazy(() => import("@/pages/NotFound"));
 const ForgotPassword = lazy(() => import("@/pages/ForgotPassword"));
@@ -124,6 +125,7 @@ function Router() {
                 <Route path="/" component={Home} />
                 <Route path="/quem-somos" component={QuemSomos} />
                 <Route path="/consultores" component={ConsultoresPage} />
+                <Route path="/test-consultores" component={TestConsultoresPage} />
                 <Route path="/consultores/:id" component={ConsultantProfile} />
                 <Route path="/consulta/:consultantId" component={ConsultantProfile} />
                 <Route path="/consultores/astrologia" component={ConsultoresAstrologia} />
