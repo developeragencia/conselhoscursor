@@ -8,7 +8,7 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { useState, useEffect, Suspense, lazy } from "react";
 
 
-import Home from "@/pages/Home";
+import HomeModern from "@/pages/HomeModern";
 import MainLayout from "@/layouts/MainLayout";
 
 // Lazy load páginas para carregamento mais rápido
