@@ -22,30 +22,40 @@ export default function ConsultoresPage() {
   const [searchTerm, setSearchTerm] = useState('');
 
   useEffect(() => {
+    console.log('🔍 ConsultoresPage montado');
     loadConsultants();
   }, []);
 
   const loadConsultants = async () => {
     try {
+      console.log('📡 Iniciando fetch...');
       setLoading(true);
       setError(null);
       
+      console.log('📡 Fazendo requisição para /api/consultants?limit=50');
       const response = await fetch('/api/consultants?limit=50');
+      console.log('📡 Response status:', response.status);
+      console.log('📡 Response headers:', Object.fromEntries(response.headers.entries()));
 
       if (!response.ok) {
         throw new Error(`Erro ${response.status}`);
       }
 
       const data = await response.json();
-      const list = Array.isArray(data) ? data : [];
+      console.log('📡 Data received:', data);
       
-      console.log('✅ Consultores:', list.length);
+      const list = Array.isArray(data) ? data : [];
+      console.log('✅ Consultores carregados:', list.length);
+      console.log('✅ Primeiro consultor:', list[0]);
+      
       setConsultants(list);
     } catch (err: any) {
-      console.error('❌ Erro:', err);
+      console.error('❌ Erro completo:', err);
+      console.error('❌ Stack:', err.stack);
       setError(err.message || 'Erro ao carregar');
     } finally {
       setLoading(false);
+      console.log('🏁 Loading finalizado');
     }
   };
 
