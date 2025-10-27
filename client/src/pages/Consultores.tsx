@@ -30,12 +30,18 @@ export default function Consultores() {
       setLoading(true);
       setError(null);
       
-      const response = await fetch('/api/consultants?limit=50', {
+      // Usa URL absoluta se estiver no domínio customizado
+      const apiUrl = window.location.hostname.includes('conselhosesotericos.com.br')
+        ? 'https://conselhos-esotericos.onrender.com/api/consultants?limit=50'
+        : '/api/consultants?limit=50';
+      
+      const response = await fetch(apiUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include',
+        mode: 'cors',
+        credentials: 'omit',
       });
 
       if (!response.ok) {
