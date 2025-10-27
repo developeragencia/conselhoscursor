@@ -21,6 +21,12 @@ import { createBlogRouter } from './routes/blog.js';
 // Import WebSocket handler
 import { WebSocketHandler } from './websocket-handler.js';
 
+// Import middleware improvements
+import { generalLimiter, authLimiter, apiLimiter } from './middleware/rateLimiter.js';
+import { errorHandler } from './middleware/errorHandler.js';
+import { consultantsCache, statsCache } from './middleware/cache.js';
+import { validateRegistration } from './middleware/validator.js';
+
 // Configure Neon to use ws for WebSocket
 neonConfig.webSocketConstructor = ws;
 
@@ -209,8 +215,8 @@ app.use(express.static(path.join(__dirname, '../dist/public')));
 
 // === AUTH ENDPOINTS ===
 
-// Register
-app.post('/api/auth/register', async (req, res) => {
+// Register com rate limiting e validação
+app.post('/api/auth/register', authLimiter, validateRegistration, async (req, res) => {
   try {
     const { email, name, password, role, cpf, phone } = req.body;
 
@@ -265,8 +271,8 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-// Login
-app.post('/api/auth/login', async (req, res) => {
+// Login com rate limiting
+app.post('/api/auth/login', authLimiter, async (req, res) => {
   try {
     const { email, password } = req.body;
 
@@ -401,15 +407,15 @@ const startServer = async () => {
   wsHandler = new WebSocketHandler(server, db);
   console.log('✅ WebSocket Handler initialized');
   
-  // Register API routes BEFORE catch-all
-  app.use('/api/consultants', createConsultantsRouter(db));
-  app.use('/api/testimonials', createTestimonialsRouter(db));
-  app.use('/api/credits', createCreditsRouter(db));
-  app.use('/api/consultations', createConsultationsRouter(db));
-  app.use('/api/admin', createAdminRouter(db));
-  app.use('/api/notifications', createNotificationsRouter(db, wsHandler));
-  app.use('/api/payments', createPaymentsRouter(db));
-  app.use('/api/blog', createBlogRouter(db));
+  // Register API routes BEFORE catch-all (com rate limiting)
+  app.use('/api/consultants', apiLimiter, createConsultantsRouter(db));
+  app.use('/api/testimonials', apiLimiter, createTestimonialsRouter(db));
+  app.use('/api/credits', apiLimiter, createCreditsRouter(db));
+  app.use('/api/consultations', apiLimiter, createConsultationsRouter(db));
+  app.use('/api/admin', generalLimiter, createAdminRouter(db));
+  app.use('/api/notifications', apiLimiter, createNotificationsRouter(db, wsHandler));
+  app.use('/api/payments', apiLimiter, createPaymentsRouter(db));
+  app.use('/api/blog', apiLimiter, createBlogRouter(db));
   
   console.log('✅ All API routes registered successfully');
   console.log('📊 Available endpoints:');
@@ -429,16 +435,25 @@ const startServer = async () => {
     res.sendFile(path.join(__dirname, '../dist/public/index.html'));
   });
   
+  // Error handler global (DEVE vir depois de todas as rotas)
+  app.use(errorHandler);
+  
   if (process.env.NODE_ENV === 'production') {
     // For production deployment
     server.listen(PORT, '0.0.0.0', () => {
       console.log('🚀 Server ready for production on port ' + PORT);
+      console.log('🛡️ Rate limiting: ATIVADO');
+      console.log('💾 Cache: DISPONÍVEL');
+      console.log('🔒 Validação: ATIVADA');
     });
   } else {
     // For local development
     server.listen(PORT, '0.0.0.0', () => {
       console.log(`🌙 Conselhos Esotéricos running on http://0.0.0.0:${PORT}`);
       console.log(`🔌 WebSocket available at ws://0.0.0.0:${PORT}/ws`);
+      console.log('🛡️ Rate limiting: ATIVADO');
+      console.log('💾 Cache: DISPONÍVEL');
+      console.log('🔒 Validação: ATIVADA');
     });
   }
 };
