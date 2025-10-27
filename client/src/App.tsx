@@ -8,7 +8,7 @@ import { LoadingScreen } from "@/components/LoadingScreen";
 import { useState, useEffect, Suspense, lazy } from "react";
 
 
-import HomeModern from "@/pages/HomeModern";
+import Home from "@/pages/Home";
 import MainLayout from "@/layouts/MainLayout";
 
 // Lazy load páginas para carregamento mais rápido
@@ -122,7 +122,7 @@ function Router() {
           {() => (
             <MainLayout>
               <Switch>
-                <Route path="/" component={HomeModern} />
+                <Route path="/" component={Home} />
                 <Route path="/quem-somos" component={QuemSomos} />
                 <Route path="/consultores" component={ConsultoresPage} />
                 <Route path="/test-consultores" component={TestConsultoresPage} />
