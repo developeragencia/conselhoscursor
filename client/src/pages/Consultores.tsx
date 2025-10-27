@@ -30,18 +30,11 @@ export default function Consultores() {
       setLoading(true);
       setError(null);
       
-      // Usa URL absoluta se estiver no domínio customizado
-      const apiUrl = window.location.hostname.includes('conselhosesotericos.com.br')
-        ? 'https://conselhos-esotericos.onrender.com/api/consultants?limit=50'
-        : '/api/consultants?limit=50';
-      
-      const response = await fetch(apiUrl, {
+      const response = await fetch('/api/consultants?limit=50', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        mode: 'cors',
-        credentials: 'omit',
       });
 
       if (!response.ok) {
@@ -55,6 +48,7 @@ export default function Consultores() {
         ? data 
         : (data.consultants || data.data || []);
 
+      console.log('Consultores carregados:', consultantsList.length);
       setConsultants(consultantsList);
     } catch (err) {
       console.error('Erro ao carregar consultores:', err);
